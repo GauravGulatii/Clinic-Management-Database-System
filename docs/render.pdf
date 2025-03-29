@@ -1,0 +1,7 @@
+The following PostgresSQL Database is rendered on a free service using render's hosting services
+The credentials of database won't be made public in here since the repo is available publicly
+However, to run in via terminal, make sure the psql is added to the PATH
+
+For connection to Database: psql " USERNAME & PASSWORD (ASK FOR ACCESS)" 
+
+Make sure any changes being made are indeed live and happening on real time, so please dont end up deleting the entire database as we dont have any backup created
