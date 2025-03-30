@@ -9,7 +9,11 @@ function validateForm() {
         return false;
     }
 
-    // Update path to correctly point to patient dashboard in the pages directory
+    // Store username in sessionStorage
+    sessionStorage.setItem('username', username);
+    console.log('Stored username:', username);
+    
+    // Redirect to dashboard
     window.location.href = 'patient-dashboard.html';
     return false;
 } 
