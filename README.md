@@ -8,8 +8,6 @@ Summarize the Solution: This project proposes a centralized database model to st
 
 Motivation: The CMS will demonstrate how database systems can address real-world problems in healthcare management, ensuring efficiency and better patient outcomes.
 
-
-5. Conclusion
 This project addresses the challenges faced by smaller healthcare facilities in managing their operations efficiently. The primary problem stems from the reliance on manual processes or expensive, complex systems, which result in delays, scheduling conflicts, and data errors that negatively impact patient care. The motivation for this project lies in creating an accessible, cost-effective solution tailored to the needs of smaller clinics, focusing on essential functionalities without unnecessary complexities. By leveraging database management systems, the proposed Clinic Management System (CMS) streamlines patient appointment booking, doctor schedule management, and patient record maintenance to enhance overall efficiency and service quality.
 
 The proposed solution includes a centralized database system that reduces manual errors, optimizes scheduling processes and improves data accessibility for both front-end users (patients) and back-end users (clinic staff). Additional optional features, such as reporting and feedback systems, further enhance the usability and operational insights provided by the CMS. This project demonstrates how technology can address real-world healthcare challenges while emphasizing user-friendly design and scalability for future enhancements.
