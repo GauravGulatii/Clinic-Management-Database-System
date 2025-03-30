@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Dashboard - Clinic Management System</title>
+    <link rel="stylesheet" href="../styles/styles.css">
+    <link rel="stylesheet" href="../styles/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <nav class="sidebar">
+            <div class="logo">
+                <i class="fas fa-hospital-symbol"></i>
+                <h2>Patient Portal</h2>
+            </div>
+            <ul class="nav-links">
+                <li class="active">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </li>
+                <li>
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Book Appointment</span>
+                </li>
+                <li>
+                    <i class="fas fa-history"></i>
+                    <span>Appointment History</span>
+                </li>
+                <li>
+                    <i class="fas fa-file-medical"></i>
+                    <span>Medical Records</span>
+                </li>
+                <li>
+                    <i class="fas fa-prescription"></i>
+                    <span>Prescriptions</span>
+                </li>
+                <li class="logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </li>
+            </ul>
+        </nav>
+        <main class="main-content">
+            <header>
+                <h1>Welcome, Patient</h1>
+                <div class="user-info">
+                    <i class="fas fa-user-circle"></i>
+                    <span>My Profile</span>
+                </div>
+            </header>
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h3>Next Appointment</h3>
+                    <p>No upcoming appointments</p>
+                    <button class="action-btn">Book Now</button>
+                </div>
+                <div class="card">
+                    <h3>Recent Prescriptions</h3>
+                    <p>No recent prescriptions</p>
+                    <button class="action-btn">View All</button>
+                </div>
+                <div class="card">
+                    <h3>Medical Records</h3>
+                    <p>Last updated: Never</p>
+                    <button class="action-btn">View Records</button>
+                </div>
+                <div class="card">
+                    <h3>Billing Status</h3>
+                    <p>No pending bills</p>
+                    <button class="action-btn">View History</button>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html> 
