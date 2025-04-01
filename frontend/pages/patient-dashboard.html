@@ -99,10 +99,6 @@
                     <i class="fas fa-file-invoice-dollar"></i>
                     <span>Billing</span>
                 </li>
-                <li class="profile">
-                    <i class="fas fa-user-circle"></i>
-                    <span>My Profile</span>
-                </li>
                 <li class="logout">
                     <i class="fas fa-sign-out-alt"></i>
                     <span>Logout</span>
@@ -112,10 +108,9 @@
 
         <main class="main-content">
             <header>
-                <h1 id="welcome-header">Welcome, <span id="username-display">Guest</span></h1>
+                <h1 id="welcome-header">Welcome</h1>
                 <div class="user-info">
                     <i class="fas fa-user-circle"></i>
-                    <span id="profile-name" class="profile-link">My Profile</span>
                 </div>
             </header>
 
@@ -142,77 +137,76 @@
                     <button class="action-btn" id="view-records-btn">View Records</button>
                 </div>
                 <div class="card">
+                    <h3>Upcoming Tests</h3>
+                    <p>No scheduled tests</p>
+                    <button class="action-btn">Schedule Test</button>
+                </div>
+                <div class="card">
                     <h3>Billing Status</h3>
-                    <div id="billing-summary">
-                        <!-- Billing summary will be populated by JavaScript -->
-                    </div>
+                    <p>No pending bills</p>
                     <button class="action-btn" id="view-billing-btn">View History</button>
                 </div>
             </div>
         </main>
     </div>
     
-    <script src="../pages/common.js"></script>
     <script>
-        // Get current patient ID from sessionStorage
-        const currentPatientId = sessionStorage.getItem('currentPatientId');
-        
-        // Redirect to login if no patient ID is found
-        if (!currentPatientId) {
-            window.location.href = '../index.html';
-        }
-        
-        // Get patient data from localStorage
-        function getCurrentPatient() {
-            const patients = JSON.parse(localStorage.getItem('patients')) || [];
-            return patients.find(p => p.id === currentPatientId) || null;
-        }
-        
-        // Load patient data
-        const currentPatient = getCurrentPatient();
-        
-        // Update welcome message and profile name
-        if (currentPatient) {
-            document.getElementById('username-display').textContent = currentPatient.firstName;
-            document.getElementById('profile-name').textContent = `${currentPatient.firstName} ${currentPatient.lastName}`;
-        }
+        // Get username from sessionStorage
+        let username = sessionStorage.getItem('username') || "Guest";
         
         // Add event listeners for navigation
-        document.querySelectorAll('.book-appointment-btn').forEach(button => {
-            button.addEventListener('click', () => window.location.href = 'book-appointment.html');
-        });
-        
         document.querySelector('.nav-links li:nth-child(1)').addEventListener('click', function() {
             window.location.href = 'patient-dashboard.html';
         });
-        
+
         document.querySelector('.nav-links li:nth-child(2)').addEventListener('click', function() {
             window.location.href = 'book-appointment.html';
         });
-        
+
         document.querySelector('.nav-links li:nth-child(3)').addEventListener('click', function() {
             window.location.href = 'appointment-history.html';
         });
-        
+
         document.querySelector('.nav-links li:nth-child(4)').addEventListener('click', function() {
             window.location.href = 'medical-records.html';
         });
-        
+
         document.querySelector('.nav-links li:nth-child(5)').addEventListener('click', function() {
             window.location.href = 'prescriptions.html';
         });
-        
+
         document.querySelector('.nav-links li:nth-child(6)').addEventListener('click', function() {
             window.location.href = 'billing.html';
         });
-        
+
         document.querySelector('.nav-links li.logout').addEventListener('click', function() {
             if (confirm('Are you sure you want to log out?')) {
+                sessionStorage.removeItem('currentPatientId');
                 window.location.href = '../index.html';
             }
         });
-        
-        document.querySelector('.nav-links li.profile').addEventListener('click', function() {
+
+        // Add event listeners for dashboard card buttons
+        document.getElementById('view-prescriptions-btn').addEventListener('click', function() {
+            window.location.href = 'prescriptions.html';
+        });
+
+        document.getElementById('view-records-btn').addEventListener('click', function() {
+            window.location.href = 'medical-records.html';
+        });
+
+        document.getElementById('view-billing-btn').addEventListener('click', function() {
+            window.location.href = 'billing.html';
+        });
+
+        document.querySelectorAll('.book-appointment-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                window.location.href = 'book-appointment.html';
+            });
+        });
+
+        // Add click event to the user icon instead
+        document.querySelector('.user-info').addEventListener('click', function() {
             window.location.href = 'profile.html';
         });
         
@@ -432,83 +426,36 @@
             `;
         }
         
-        // Mock billing data
-        const mockBillingData = [
-            {
-                id: 'bill-001',
-                date: '2023-05-15',
-                description: 'General Checkup',
-                amount: 150.00,
-                insurance: 120.00,
-                patientResponsibility: 30.00,
-                status: 'Paid',
-                paymentDate: '2023-05-20'
-            },
-            {
-                id: 'bill-002',
-                date: '2023-04-10',
-                description: 'Blood Test',
-                amount: 200.00,
-                insurance: 160.00,
-                patientResponsibility: 40.00,
-                status: 'Pending',
-                dueDate: '2023-06-10'
-            },
-            {
-                id: 'bill-003',
-                date: '2023-03-05',
-                description: 'X-Ray',
-                amount: 300.00,
-                insurance: 240.00,
-                patientResponsibility: 60.00,
-                status: 'Paid',
-                paymentDate: '2023-03-15'
-            }
-        ];
-        
-        // Store mock billing data in localStorage if not already present
-        if (!localStorage.getItem('billingData')) {
-            localStorage.setItem('billingData', JSON.stringify(mockBillingData));
-        }
-        
-        // Display billing summary
-        function displayBillingSummary() {
-            const billingData = JSON.parse(localStorage.getItem('billingData')) || [];
-            const billingSummary = document.getElementById('billing-summary');
-            
-            if (billingData.length === 0) {
-                billingSummary.innerHTML = '<p>No billing information available</p>';
-                return;
-            }
-            
-            // Check for pending bills
-            const pendingBills = billingData.filter(bill => bill.status === 'Pending');
-            
-            if (pendingBills.length === 0) {
-                billingSummary.innerHTML = '<p>No pending bills</p>';
-                return;
-            }
-            
-            // Calculate total pending amount
-            const totalPending = pendingBills.reduce((total, bill) => total + bill.patientResponsibility, 0);
-            
-            // Display pending bills summary
-            billingSummary.innerHTML = `
-                <p><strong>Pending Bills:</strong> ${pendingBills.length}</p>
-                <p><strong>Total Due:</strong> $${totalPending.toFixed(2)}</p>
-                <p><strong>Next Due Date:</strong> ${new Date(pendingBills[0].dueDate).toLocaleDateString()}</p>
-            `;
-        }
-        
         // Call functions to display data
         displayUpcomingAppointments();
         displayRecentPrescriptions();
         displayMedicalRecordsSummary();
-        displayBillingSummary();
 
-        document.getElementById('profile-name').addEventListener('click', function() {
-            window.location.href = 'profile.html';
+        // Get current patient ID from session storage
+        const currentPatientId = sessionStorage.getItem('currentPatientId');
+
+        // Get patients from localStorage
+        const patients = JSON.parse(localStorage.getItem('patients')) || [];
+
+        // Find current patient
+        const currentPatient = patients.find(patient => patient.id === currentPatientId);
+
+        if (!currentPatient) {
+            // Redirect to login if patient not found
+            window.location.href = '../index.html';
+        }
+
+        // Display patient information in dashboard
+        document.getElementById('patient-full-name').textContent = `${currentPatient.firstName} ${currentPatient.lastName}`;
+        document.getElementById('patient-id-display').textContent = currentPatient.id;
+        document.getElementById('patient-dob').textContent = new Date(currentPatient.dateOfBirth).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
         });
+        document.getElementById('patient-gender').textContent = currentPatient.sex;
+        document.getElementById('patient-phone').textContent = currentPatient.phone;
+        document.getElementById('patient-address').textContent = currentPatient.address;
     </script>
 </body>
 </html> 

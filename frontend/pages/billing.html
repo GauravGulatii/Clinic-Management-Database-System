@@ -37,73 +37,56 @@
         }
         
         .billing-summary {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 40px;
             margin-bottom: 30px;
+        }
+        
+        .summary-card {
             background-color: #f9f9f9;
-            padding: 20px;
             border-radius: 8px;
-        }
-        
-        .summary-item {
+            padding: 15px;
             text-align: center;
+            width: 250px;
         }
         
-        .summary-value {
+        .summary-card h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        
+        .summary-card .amount {
             font-size: 24px;
             font-weight: bold;
-            margin-bottom: 5px;
+            color: #2196F3;
+            margin: 10px 0;
         }
         
-        .summary-label {
+        .summary-card p {
             color: #666;
-            font-size: 14px;
+            margin-bottom: 0;
         }
         
-        .filter-controls {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        
-        .filter-control {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .filter-control label {
-            font-weight: bold;
-            color: #555;
-        }
-        
-        .filter-control select {
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background-color: #f9f9f9;
+        .billing-history {
+            margin-top: 30px;
         }
         
         .billing-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+        }
+        
+        .billing-table th, .billing-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
         }
         
         .billing-table th {
             background-color: #f5f5f5;
-            padding: 12px;
-            text-align: left;
             font-weight: bold;
             color: #333;
-            border-bottom: 2px solid #ddd;
-        }
-        
-        .billing-table td {
-            padding: 12px;
-            border-bottom: 1px solid #eee;
         }
         
         .billing-table tr:hover {
@@ -141,37 +124,22 @@
         }
         
         .payment-btn {
-            background-color: #4CAF50;
+            background-color: #2196F3;
             color: white;
             border: none;
-            padding: 5px 10px;
+            padding: 8px 12px;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 14px;
         }
         
         .payment-btn:hover {
-            background-color: #45a049;
+            background-color: #0b7dda;
         }
         
         .payment-btn:disabled {
             background-color: #cccccc;
             cursor: not-allowed;
-        }
-        
-        .invoice-btn {
-            background-color: transparent;
-            color: #2196F3;
-            border: 1px solid #2196F3;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            margin-right: 5px;
-        }
-        
-        .invoice-btn:hover {
-            background-color: #e3f2fd;
         }
     </style>
 </head>
@@ -216,78 +184,209 @@
 
         <main class="main-content">
             <header>
-                <h1>Billing & Payments</h1>
+                <h1 id="welcome-header">Welcome, <span id="username-display">Guest</span></h1>
                 <div class="user-info">
                     <i class="fas fa-user-circle"></i>
-                    <span id="profile-name">My Profile</span>
+                    <span id="profile-name" class="profile-link">My Profile</span>
                 </div>
             </header>
 
             <div class="billing-container">
+                <h2>Billing Summary</h2>
+                
                 <div class="billing-summary">
-                    <div class="summary-item">
-                        <div class="summary-value" id="total-due">$0.00</div>
-                        <div class="summary-label">Total Due</div>
+                    <div class="summary-card">
+                        <h3>Total Due</h3>
+                        <div class="amount" id="total-due">$0.00</div>
+                        <p>Current balance</p>
                     </div>
-                    <div class="summary-item">
-                        <div class="summary-value" id="pending-bills">0</div>
-                        <div class="summary-label">Pending Bills</div>
-                    </div>
-                    <div class="summary-item">
-                        <div class="summary-value" id="paid-ytd">$0.00</div>
-                        <div class="summary-label">Paid (Year to Date)</div>
-                    </div>
-                    <div class="summary-item">
-                        <div class="summary-value" id="insurance-covered">$0.00</div>
-                        <div class="summary-label">Insurance Covered</div>
+                    
+                    <div class="summary-card">
+                        <h3>Last Payment</h3>
+                        <div class="amount" id="last-payment">$0.00</div>
+                        <p>on <span id="last-payment-date">N/A</span></p>
                     </div>
                 </div>
-
-                <div class="filter-controls">
-                    <div class="filter-control">
-                        <label for="status-filter">Status:</label>
-                        <select id="status-filter">
-                            <option value="all">All</option>
-                            <option value="Pending">Pending</option>
-                            <option value="Paid">Paid</option>
-                            <option value="Overdue">Overdue</option>
-                        </select>
-                    </div>
-                    <div class="filter-control">
-                        <label for="date-filter">Date Range:</label>
-                        <select id="date-filter">
-                            <option value="all">All Time</option>
-                            <option value="current-year">Current Year</option>
-                            <option value="last-6-months">Last 6 Months</option>
-                            <option value="last-3-months">Last 3 Months</option>
-                        </select>
-                    </div>
+                
+                <div class="billing-history">
+                    <h3>Billing History</h3>
+                    <table class="billing-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="billing-history-table">
+                            <!-- Billing history will be populated here -->
+                        </tbody>
+                    </table>
                 </div>
-
-                <table class="billing-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Description</th>
-                            <th>Total Amount</th>
-                            <th>Insurance</th>
-                            <th>Your Responsibility</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="billing-list">
-                        <!-- Billing data will be populated by JavaScript -->
-                    </tbody>
-                </table>
             </div>
         </main>
     </div>
 
     <script>
-        // Get username from sessionStorage
-        let username = sessionStorage.getItem('username') || "Guest";
-        document.getElementById("profile-name").textContent = username;
+        // Get current patient ID from sessionStorage
+        const currentPatientId = sessionStorage.getItem('currentPatientId');
+        
+        // Redirect to login if no patient ID is found
+        if (!currentPatientId) {
+            window.location.href = '../index.html';
+        }
+        
+        // Get patient data from localStorage
+        function getCurrentPatient() {
+            const patients = JSON.parse(localStorage.getItem('patients')) || [];
+            return patients.find(p => p.id === currentPatientId) || null;
+        }
+        
+        // Load patient data
+        const currentPatient = getCurrentPatient();
+        
+        // Update welcome message and profile name
+        if (currentPatient) {
+            document.getElementById('username-display').textContent = currentPatient.firstName;
+            document.getElementById('profile-name').textContent = `${currentPatient.firstName} ${currentPatient.lastName}`;
+        }
+        
+        // Initialize billing data if not exists
+        if (!localStorage.getItem('billingData')) {
+            const mockBillingData = [
+                {
+                    date: '2023-06-15',
+                    description: 'Annual Physical Examination',
+                    totalAmount: 150.00,
+                    patientResponsibility: 150.00,
+                    status: 'Paid',
+                    paymentDate: '2023-06-20'
+                },
+                {
+                    date: '2023-08-10',
+                    description: 'Consultation - Dr. Smith',
+                    totalAmount: 120.00,
+                    patientResponsibility: 120.00,
+                    status: 'Paid',
+                    paymentDate: '2023-08-15'
+                },
+                {
+                    date: '2023-10-05',
+                    description: 'Blood Test',
+                    totalAmount: 85.00,
+                    patientResponsibility: 85.00,
+                    status: 'Pending',
+                    dueDate: '2023-11-05'
+                },
+                {
+                    date: '2023-11-20',
+                    description: 'X-Ray - Chest',
+                    totalAmount: 200.00,
+                    patientResponsibility: 200.00,
+                    status: 'Pending',
+                    dueDate: '2023-12-20'
+                }
+            ];
+            
+            localStorage.setItem('billingData', JSON.stringify(mockBillingData));
+        }
+        
+        // Display billing summary
+        function displayBillingSummary() {
+            const billingData = JSON.parse(localStorage.getItem('billingData')) || [];
+            
+            // Calculate total due
+            const totalDue = billingData
+                .filter(bill => bill.status === 'Pending' || bill.status === 'Overdue')
+                .reduce((total, bill) => total + bill.patientResponsibility, 0);
+            
+            document.getElementById('total-due').textContent = `$${totalDue.toFixed(2)}`;
+            
+            // Find last payment
+            const paidBills = billingData
+                .filter(bill => bill.status === 'Paid')
+                .sort((a, b) => new Date(b.paymentDate) - new Date(a.paymentDate));
+            
+            if (paidBills.length > 0) {
+                const lastPaid = paidBills[0];
+                document.getElementById('last-payment').textContent = `$${lastPaid.patientResponsibility.toFixed(2)}`;
+                
+                const paymentDate = new Date(lastPaid.paymentDate);
+                document.getElementById('last-payment-date').textContent = paymentDate.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+            }
+        }
+        
+        // Display billing history
+        function displayBillingHistory() {
+            const billingData = JSON.parse(localStorage.getItem('billingData')) || [];
+            const billingHistoryTable = document.getElementById('billing-history-table');
+            
+            // Sort billing data by date (newest first)
+            billingData.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            // Clear existing table rows
+            billingHistoryTable.innerHTML = '';
+            
+            // Add billing data to table
+            billingData.forEach(bill => {
+                const row = document.createElement('tr');
+                
+                // Format date
+                const billDate = new Date(bill.date);
+                const formattedDate = billDate.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+                
+                row.innerHTML = `
+                    <td>${formattedDate}</td>
+                    <td>${bill.description}</td>
+                    <td>$${bill.patientResponsibility.toFixed(2)}</td>
+                    <td><span class="status-${bill.status.toLowerCase()}">${bill.status}</span></td>
+                    <td>
+                        <button class="payment-btn" ${bill.status === 'Paid' ? 'disabled' : ''}>
+                            ${bill.status === 'Paid' ? 'Paid' : 'Pay Now'}
+                        </button>
+                    </td>
+                `;
+                
+                billingHistoryTable.appendChild(row);
+            });
+            
+            // Add event listeners to payment buttons
+            document.querySelectorAll('.payment-btn').forEach((button, index) => {
+                if (!button.disabled) {
+                    button.addEventListener('click', function() {
+                        // Process payment
+                        const billingData = JSON.parse(localStorage.getItem('billingData'));
+                        const bill = billingData[index];
+                        
+                        if (confirm(`Confirm payment of $${bill.patientResponsibility.toFixed(2)} for ${bill.description}?`)) {
+                            bill.status = 'Paid';
+                            bill.paymentDate = new Date().toISOString().split('T')[0]; // Today's date
+                            localStorage.setItem('billingData', JSON.stringify(billingData));
+                            
+                            // Refresh display
+                            displayBillingSummary();
+                            displayBillingHistory();
+                            
+                            alert('Payment successful! Thank you.');
+                        }
+                    });
+                }
+            });
+        }
+        
+        // Call functions to display billing data
+        displayBillingSummary();
+        displayBillingHistory();
         
         // Add event listeners for navigation
         document.querySelector('.nav-links li:nth-child(1)').addEventListener('click', function() {
@@ -310,237 +409,14 @@
             window.location.href = 'prescriptions.html';
         });
         
-        // Mock billing data
-        const mockBillingData = [
-            {
-                id: 'bill-001',
-                date: '2023-05-15',
-                description: 'General Checkup',
-                amount: 150.00,
-                insurance: 120.00,
-                patientResponsibility: 30.00,
-                status: 'Paid',
-                paymentDate: '2023-05-20'
-            },
-            {
-                id: 'bill-002',
-                date: '2023-04-10',
-                description: 'Blood Test',
-                amount: 200.00,
-                insurance: 160.00,
-                patientResponsibility: 40.00,
-                status: 'Pending',
-                dueDate: '2023-06-10'
-            },
-            {
-                id: 'bill-003',
-                date: '2023-03-05',
-                description: 'X-Ray',
-                amount: 300.00,
-                insurance: 240.00,
-                patientResponsibility: 60.00,
-                status: 'Paid',
-                paymentDate: '2023-03-15'
-            },
-            {
-                id: 'bill-004',
-                date: '2023-02-20',
-                description: 'Specialist Consultation',
-                amount: 250.00,
-                insurance: 200.00,
-                patientResponsibility: 50.00,
-                status: 'Paid',
-                paymentDate: '2023-02-25'
-            },
-            {
-                id: 'bill-005',
-                date: '2023-01-15',
-                description: 'Prescription Medication',
-                amount: 75.00,
-                insurance: 60.00,
-                patientResponsibility: 15.00,
-                status: 'Paid',
-                paymentDate: '2023-01-20'
-            },
-            {
-                id: 'bill-006',
-                date: '2022-12-10',
-                description: 'Annual Physical',
-                amount: 180.00,
-                insurance: 144.00,
-                patientResponsibility: 36.00,
-                status: 'Paid',
-                paymentDate: '2022-12-15'
-            },
-            {
-                id: 'bill-007',
-                date: '2023-05-25',
-                description: 'MRI Scan',
-                amount: 800.00,
-                insurance: 640.00,
-                patientResponsibility: 160.00,
-                status: 'Pending',
-                dueDate: '2023-06-25'
-            },
-            {
-                id: 'bill-008',
-                date: '2023-04-05',
-                description: 'Emergency Room Visit',
-                amount: 1200.00,
-                insurance: 960.00,
-                patientResponsibility: 240.00,
-                status: 'Overdue',
-                dueDate: '2023-05-05'
+        document.querySelector('.nav-links li.logout').addEventListener('click', function() {
+            if (confirm('Are you sure you want to log out?')) {
+                sessionStorage.removeItem('currentPatientId');
+                window.location.href = '../index.html';
             }
-        ];
+        });
         
-        // Store mock billing data in localStorage if not already present
-        if (!localStorage.getItem('billingData')) {
-            localStorage.setItem('billingData', JSON.stringify(mockBillingData));
-        }
-        
-        // Update billing summary
-        function updateBillingSummary() {
-            const billingData = JSON.parse(localStorage.getItem('billingData')) || [];
-            
-            // Calculate total due
-            const pendingBills = billingData.filter(bill => bill.status === 'Pending' || bill.status === 'Overdue');
-            const totalDue = pendingBills.reduce((total, bill) => total + bill.patientResponsibility, 0);
-            document.getElementById('total-due').textContent = `$${totalDue.toFixed(2)}`;
-            
-            // Count pending bills
-            document.getElementById('pending-bills').textContent = pendingBills.length;
-            
-            // Calculate paid year to date
-            const currentYear = new Date().getFullYear();
-            const paidYTD = billingData
-                .filter(bill => bill.status === 'Paid' && new Date(bill.paymentDate).getFullYear() === currentYear)
-                .reduce((total, bill) => total + bill.patientResponsibility, 0);
-            document.getElementById('paid-ytd').textContent = `$${paidYTD.toFixed(2)}`;
-            
-            // Calculate insurance covered
-            const insuranceCovered = billingData.reduce((total, bill) => total + bill.insurance, 0);
-            document.getElementById('insurance-covered').textContent = `$${insuranceCovered.toFixed(2)}`;
-        }
-        
-        // Display billing data
-        function displayBillingData() {
-            const billingData = JSON.parse(localStorage.getItem('billingData')) || [];
-            const billingList = document.getElementById('billing-list');
-            
-            // Get filter values
-            const statusFilter = document.getElementById('status-filter').value;
-            const dateFilter = document.getElementById('date-filter').value;
-            
-            // Apply filters
-            let filteredBills = billingData;
-            
-            if (statusFilter !== 'all') {
-                filteredBills = filteredBills.filter(bill => bill.status === statusFilter);
-            }
-            
-            // Apply date filter
-            const today = new Date();
-            const currentYear = today.getFullYear();
-            
-            if (dateFilter === 'current-year') {
-                filteredBills = filteredBills.filter(bill => new Date(bill.date).getFullYear() === currentYear);
-            } else if (dateFilter === 'last-6-months') {
-                const sixMonthsAgo = new Date();
-                sixMonthsAgo.setMonth(today.getMonth() - 6);
-                
-                filteredBills = filteredBills.filter(bill => new Date(bill.date) >= sixMonthsAgo);
-            } else if (dateFilter === 'last-3-months') {
-                const threeMonthsAgo = new Date();
-                threeMonthsAgo.setMonth(today.getMonth() - 3);
-                
-                filteredBills = filteredBills.filter(bill => new Date(bill.date) >= threeMonthsAgo);
-            }
-            
-            // Sort bills by date (newest first)
-            filteredBills.sort((a, b) => new Date(b.date) - new Date(a.date));
-            
-            // Check if any bills match the filters
-            if (filteredBills.length === 0) {
-                billingList.innerHTML = '<tr><td colspan="7" style="text-align: center;">No billing records found matching the selected filters</td></tr>';
-                return;
-            }
-            
-            // Display filtered bills
-            billingList.innerHTML = '';
-            filteredBills.forEach(bill => {
-                const row = document.createElement('tr');
-                
-                // Format date
-                const formattedDate = new Date(bill.date).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric'
-                });
-                
-                row.innerHTML = `
-                    <td>${formattedDate}</td>
-                    <td>${bill.description}</td>
-                    <td>$${bill.amount.toFixed(2)}</td>
-                    <td>$${bill.insurance.toFixed(2)}</td>
-                    <td>$${bill.patientResponsibility.toFixed(2)}</td>
-                    <td><span class="status-${bill.status.toLowerCase()}">${bill.status}</span></td>
-                    <td>
-                        <button class="invoice-btn" data-id="${bill.id}">View Invoice</button>
-                        ${bill.status === 'Pending' || bill.status === 'Overdue' ? 
-                            `<button class="payment-btn" data-id="${bill.id}">Pay Now</button>` : 
-                            `<button class="payment-btn" disabled>Paid</button>`
-                        }
-                    </td>
-                `;
-                
-                billingList.appendChild(row);
-            });
-            
-            // Add event listeners to buttons
-            document.querySelectorAll('.invoice-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    const billId = this.getAttribute('data-id');
-                    alert(`Invoice for bill ${billId} will be downloaded soon.`);
-                });
-            });
-            
-            document.querySelectorAll('.payment-btn:not([disabled])').forEach(button => {
-                button.addEventListener('click', function() {
-                    const billId = this.getAttribute('data-id');
-                    
-                    // Find the bill in the data
-                    const billingData = JSON.parse(localStorage.getItem('billingData'));
-                    const billIndex = billingData.findIndex(bill => bill.id === billId);
-                    
-                    if (billIndex !== -1) {
-                        if (confirm(`Proceed to payment for $${billingData[billIndex].patientResponsibility.toFixed(2)}?`)) {
-                            // Update bill status to paid
-                            billingData[billIndex].status = 'Paid';
-                            billingData[billIndex].paymentDate = new Date().toISOString().split('T')[0];
-                            
-                            // Save updated data
-                            localStorage.setItem('billingData', JSON.stringify(billingData));
-                            
-                            alert('Payment successful! Thank you.');
-                            
-                            // Refresh display
-                            updateBillingSummary();
-                            displayBillingData();
-                        }
-                    }
-                });
-            });
-        }
-        
-        // Add event listeners to filter controls
-        document.getElementById('status-filter').addEventListener('change', displayBillingData);
-        document.getElementById('date-filter').addEventListener('change', displayBillingData);
-        
-        // Initialize the page
-        updateBillingSummary();
-        displayBillingData();
-
+        // Add event listener for profile link in header
         document.getElementById('profile-name').addEventListener('click', function() {
             window.location.href = 'profile.html';
         });
