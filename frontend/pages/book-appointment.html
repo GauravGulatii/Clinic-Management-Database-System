@@ -94,6 +94,10 @@
                     <i class="fas fa-prescription"></i>
                     <span>Prescriptions</span>
                 </li>
+                <li>
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    <span>Billing</span>
+                </li>
                 <li class="logout">
                     <i class="fas fa-sign-out-alt"></i>
                     <span>Logout</span>
@@ -127,6 +131,7 @@
                         <label for="doctor">Select Doctor</label>
                         <select id="doctor" required>
                             <option value="">Select a doctor</option>
+                            <option value="no-preference">No Preference</option>
                             <option value="dr-smith">Dr. Smith - General Medicine</option>
                             <option value="dr-johnson">Dr. Johnson - Cardiology</option>
                             <option value="dr-williams">Dr. Williams - Pediatrics</option>
@@ -135,12 +140,12 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="appointment-date">Preferred Date</label>
+                        <label for="appointment-date">Available Date</label>
                         <input type="date" id="appointment-date" required>
                     </div>
 
                     <div class="form-group">
-                        <label for="appointment-time">Preferred Time</label>
+                        <label for="appointment-time">Available Time</label>
                         <select id="appointment-time" required>
                             <option value="">Select a time slot</option>
                             <option value="09:00">9:00 AM</option>
@@ -190,7 +195,12 @@
             const reason = document.getElementById('reason').value;
             
             // Format doctor name for display
-            const doctorName = document.getElementById('doctor').options[document.getElementById('doctor').selectedIndex].text;
+            let doctorName = document.getElementById('doctor').options[document.getElementById('doctor').selectedIndex].text;
+            
+            // If no preference was selected, update the doctor name
+            if (doctor === 'no-preference') {
+                doctorName = "Any Available Doctor";
+            }
             
             // Format date for display
             const formattedDate = new Date(appointmentDate).toLocaleDateString('en-US', {
@@ -232,6 +242,33 @@
         // Set minimum date to today
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('appointment-date').min = today;
+
+        // Sidebar navigation
+        document.querySelector('.nav-links li:nth-child(2)').addEventListener('click', function() {
+            window.location.href = 'book-appointment.html';
+        });
+        
+        document.querySelector('.nav-links li:nth-child(3)').addEventListener('click', function() {
+            window.location.href = 'appointment-history.html';
+        });
+        
+        document.querySelector('.nav-links li:nth-child(4)').addEventListener('click', function() {
+            window.location.href = 'medical-records.html';
+        });
+        
+        document.querySelector('.nav-links li:nth-child(5)').addEventListener('click', function() {
+            window.location.href = 'prescriptions.html';
+        });
+        
+        document.querySelector('.nav-links li:nth-child(6)').addEventListener('click', function() {
+            window.location.href = 'billing.html';
+        });
+        
+        document.querySelector('.nav-links li.logout').addEventListener('click', function() {
+            if (confirm('Are you sure you want to log out?')) {
+                window.location.href = '../index.html';
+            }
+        });
     </script>
 </body>
 </html> 

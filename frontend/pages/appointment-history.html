@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointment History - Clinic Management System</title>
+    <link rel="stylesheet" href="../styles/styles.css">
+    <link rel="stylesheet" href="../styles/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        .dashboard-container {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        .main-content {
+            padding: 15px;
+            overflow-y: auto;
+            flex: 1;
+        }
+        
+        .appointments-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .filter-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .filter-control label {
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .filter-control select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        
+        .appointment-card {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #f9f9f9;
+            display: flex;
+            flex-wrap: wrap;
+        }
+        
+        .appointment-date {
+            width: 150px;
+            padding-right: 15px;
+            border-right: 1px solid #eee;
+        }
+        
+        .appointment-date-value {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .appointment-time {
+            font-size: 16px;
+            color: #666;
+        }
+        
+        .appointment-details {
+            flex: 1;
+            padding: 0 15px;
+        }
+        
+        .appointment-type {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .appointment-doctor {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .appointment-status {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-end;
+            width: 120px;
+        }
+        
+        .status-completed {
+            display: inline-block;
+            padding: 3px 8px;
+            background-color: #e8f5e9;
+            color: #4CAF50;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .status-cancelled {
+            display: inline-block;
+            padding: 3px 8px;
+            background-color: #ffebee;
+            color: #f44336;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .status-scheduled {
+            display: inline-block;
+            padding: 3px 8px;
+            background-color: #e3f2fd;
+            color: #2196F3;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .appointment-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .appointment-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            text-align: center;
+        }
+        
+        .appointment-btn.cancel {
+            background: #f44336;
+        }
+        
+        .appointment-btn.reschedule {
+            background: #2196F3;
+        }
+        
+        .appointment-btn.details {
+            background: #9e9e9e;
+        }
+        
+        .appointment-btn:hover {
+            opacity: 0.9;
+        }
+        
+        .no-appointments {
+            text-align: center;
+            padding: 30px;
+            color: #666;
+            font-style: italic;
+        }
+        
+        @media (max-width: 768px) {
+            .appointment-card {
+                flex-direction: column;
+            }
+            
+            .appointment-date {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #eee;
+                padding-bottom: 10px;
+                margin-bottom: 10px;
+            }
+            
+            .appointment-status {
+                width: 100%;
+                align-items: flex-start;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <nav class="sidebar">
+            <div class="logo">
+                <i class="fas fa-hospital-symbol"></i>
+                <h2>Patient Portal</h2>
+            </div>
+            <ul class="nav-links">
+                <li>
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </li>
+                <li>
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Book Appointment</span>
+                </li>
+                <li class="active">
+                    <i class="fas fa-history"></i>
+                    <span>Appointment History</span>
+                </li>
+                <li>
+                    <i class="fas fa-file-medical"></i>
+                    <span>Medical Records</span>
+                </li>
+                <li>
+                    <i class="fas fa-prescription"></i>
+                    <span>Prescriptions</span>
+                </li>
+                <li>
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    <span>Billing</span>
+                </li>
+                <li class="logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <header>
+                <h1>Appointment History</h1>
+                <div class="user-info">
+                    <i class="fas fa-user-circle"></i>
+                    <span id="profile-name">My Profile</span>
+                </div>
+            </header>
+
+            <div class="appointments-container">
+                <div class="filter-controls">
+                    <div class="filter-control">
+                        <label for="status-filter">Filter by Status:</label>
+                        <select id="status-filter">
+                            <option value="all">All Appointments</option>
+                            <option value="scheduled">Scheduled</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="filter-control">
+                        <label for="date-filter">Filter by Date:</label>
+                        <select id="date-filter">
+                            <option value="all">All Dates</option>
+                            <option value="upcoming">Upcoming</option>
+                            <option value="past">Past</option>
+                            <option value="last30">Last 30 Days</option>
+                            <option value="last90">Last 90 Days</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div id="appointments-list">
+                    <!-- Appointments will be populated by JavaScript -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Get username from sessionStorage
+        let username = sessionStorage.getItem('username') || "Guest";
+        document.getElementById("profile-name").textContent = username;
+        
+        // Add event listeners for navigation
+        document.querySelector('.nav-links li:first-child').addEventListener('click', function() {
+            window.location.href = 'patient-dashboard.html';
+        });
+        
+        document.querySelector('.nav-links li:nth-child(2)').addEventListener('click', function() {
+            window.location.href = 'book-appointment.html';
+        });
+        
+        document.querySelector('.nav-links li:nth-child(4)').addEventListener('click', function() {
+            window.location.href = 'medical-records.html';
+        });
+        
+        document.querySelector('.nav-links li:nth-child(5)').addEventListener('click', function() {
+            window.location.href = 'prescriptions.html';
+        });
+        
+        document.querySelector('.nav-links li:nth-child(6)').addEventListener('click', function() {
+            window.location.href = 'billing.html';
+        });
+        
+        // Mock past appointments data
+        const mockPastAppointments = [
+            {
+                id: 'apt-001',
+                type: 'general',
+                doctor: 'dr-smith',
+                doctorName: 'Dr. John Smith',
+                date: '2023-04-15',
+                formattedDate: 'Saturday, April 15, 2023',
+                time: '09:00',
+                formattedTime: '9:00 AM',
+                reason: 'Annual checkup',
+                status: 'completed',
+                notes: 'Patient is in good health. Blood pressure normal. Recommended regular exercise.'
+            },
+            {
+                id: 'apt-002',
+                type: 'specialist',
+                doctor: 'dr-johnson',
+                doctorName: 'Dr. Emily Johnson',
+                date: '2023-03-10',
+                formattedDate: 'Friday, March 10, 2023',
+                time: '14:00',
+                formattedTime: '2:00 PM',
+                reason: 'Skin rash consultation',
+                status: 'completed',
+                notes: 'Diagnosed with contact dermatitis. Prescribed topical cream.'
+            },
+            {
+                id: 'apt-003',
+                type: 'followup',
+                doctor: 'dr-williams',
+                doctorName: 'Dr. Robert Williams',
+                date: '2023-02-20',
+                formattedDate: 'Monday, February 20, 2023',
+                time: '11:00',
+                formattedTime: '11:00 AM',
+                reason: 'Follow-up after medication change',
+                status: 'completed',
+                notes: 'Patient responding well to new medication. Continue current dosage.'
+            },
+            {
+                id: 'apt-004',
+                type: 'general',
+                doctor: 'dr-smith',
+                doctorName: 'Dr. John Smith',
+                date: '2023-01-05',
+                formattedDate: 'Thursday, January 5, 2023',
+                time: '10:00',
+                formattedTime: '10:00 AM',
+                reason: 'Flu symptoms',
+                status: 'completed',
+                notes: 'Diagnosed with seasonal flu. Prescribed rest and fluids.'
+            },
+            {
+                id: 'apt-005',
+                type: 'emergency',
+                doctor: 'dr-brown',
+                doctorName: 'Dr. Sarah Brown',
+                date: '2022-12-15',
+                formattedDate: 'Thursday, December 15, 2022',
+                time: '16:00',
+                formattedTime: '4:00 PM',
+                reason: 'Severe headache',
+                status: 'completed',
+                notes: 'Migraine diagnosis. Prescribed pain medication and follow-up.'
+            },
+            {
+                id: 'apt-006',
+                type: 'specialist',
+                doctor: 'dr-johnson',
+                doctorName: 'Dr. Emily Johnson',
+                date: '2023-05-25',
+                formattedDate: 'Thursday, May 25, 2023',
+                time: '13:00',
+                formattedTime: '1:00 PM',
+                reason: 'Skin condition follow-up',
+                status: 'cancelled',
+                cancellationReason: 'Doctor unavailable'
+            }
+        ];
+        
+        // Get existing appointments from localStorage
+        let appointments = JSON.parse(localStorage.getItem('appointments')) || [];
+        
+        // Add mock past appointments if not already in localStorage
+        if (!localStorage.getItem('pastAppointments')) {
+            localStorage.setItem('pastAppointments', JSON.stringify(mockPastAppointments));
+        }
+        
+        // Get past appointments from localStorage
+        const pastAppointments = JSON.parse(localStorage.getItem('pastAppointments')) || [];
+        
+        // Combine current and past appointments
+        const allAppointments = [...appointments, ...pastAppointments];
+        
+        // Display appointments based on filters
+        function displayAppointments() {
+            const appointmentsList = document.getElementById('appointments-list');
+            const statusFilter = document.getElementById('status-filter').value;
+            const dateFilter = document.getElementById('date-filter').value;
+            
+            // Apply filters
+            let filteredAppointments = allAppointments;
+            
+            // Status filter
+            if (statusFilter !== 'all') {
+                filteredAppointments = filteredAppointments.filter(appointment => 
+                    appointment.status === statusFilter);
+            }
+            
+            // Date filter
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            if (dateFilter === 'upcoming') {
+                filteredAppointments = filteredAppointments.filter(appointment => {
+                    const appointmentDate = new Date(appointment.date);
+                    appointmentDate.setHours(0, 0, 0, 0);
+                    return appointmentDate >= today;
+                });
+            } else if (dateFilter === 'past') {
+                filteredAppointments = filteredAppointments.filter(appointment => {
+                    const appointmentDate = new Date(appointment.date);
+                    appointmentDate.setHours(0, 0, 0, 0);
+                    return appointmentDate < today;
+                });
+            } else if (dateFilter === 'last30') {
+                const thirtyDaysAgo = new Date();
+                thirtyDaysAgo.setDate(today.getDate() - 30);
+                
+                filteredAppointments = filteredAppointments.filter(appointment => {
+                    const appointmentDate = new Date(appointment.date);
+                    appointmentDate.setHours(0, 0, 0, 0);
+                    return appointmentDate >= thirtyDaysAgo && appointmentDate <= today;
+                });
+            } else if (dateFilter === 'last90') {
+                const ninetyDaysAgo = new Date();
+                ninetyDaysAgo.setDate(today.getDate() - 90);
+                
+                filteredAppointments = filteredAppointments.filter(appointment => {
+                    const appointmentDate = new Date(appointment.date);
+                    appointmentDate.setHours(0, 0, 0, 0);
+                    return appointmentDate >= ninetyDaysAgo && appointmentDate <= today;
+                });
+            }
+            
+            // Sort appointments by date (newest first)
+            filteredAppointments.sort((a, b) => {
+                const dateA = new Date(a.date + 'T' + a.time);
+                const dateB = new Date(b.date + 'T' + b.time);
+                return dateB - dateA;
+            });
+            
+            // Check if any appointments match the filters
+            if (filteredAppointments.length === 0) {
+                appointmentsList.innerHTML = '<div class="no-appointments">No appointments found matching the selected filters</div>';
+                return;
+            }
+            
+            // Display filtered appointments
+            appointmentsList.innerHTML = '';
+            filteredAppointments.forEach(appointment => {
+                const appointmentCard = document.createElement('div');
+                appointmentCard.className = 'appointment-card';
+                
+                // Get appointment type text
+                const typeMap = {
+                    'general': 'General Checkup',
+                    'specialist': 'Specialist Consultation',
+                    'followup': 'Follow-up Visit',
+                    'emergency': 'Urgent Care'
+                };
+                
+                const appointmentType = typeMap[appointment.type] || appointment.type;
+                
+                // Create appointment card HTML
+                appointmentCard.innerHTML = `
+                    <div class="appointment-date">
+                        <div class="appointment-date-value">${new Date(appointment.date).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}</div>
+                        <div class="appointment-time">${appointment.formattedTime}</div>
+                    </div>
+                    <div class="appointment-details">
+                        <div class="appointment-type">${appointmentType}</div>
+                        <div class="appointment-doctor">${appointment.doctorName}</div>
+                        <div class="appointment-reason">${appointment.reason || 'No reason provided'}</div>
+                    </div>
+                    <div class="appointment-status">
+                        <span class="status-${appointment.status}">${appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}</span>
+                        <div class="appointment-actions">
+                            ${appointment.status === 'scheduled' ? `
+                                <button class="appointment-btn reschedule">Reschedule</button>
+                                <button class="appointment-btn cancel">Cancel</button>
+                            ` : `
+                                <button class="appointment-btn details">View Details</button>
+                            `}
+                        </div>
+                    </div>
+                `;
+                
+                appointmentsList.appendChild(appointmentCard);
+            });
+            
+            // Add event listeners to appointment buttons
+            document.querySelectorAll('.appointment-btn.reschedule').forEach(button => {
+                button.addEventListener('click', function() {
+                    alert('Reschedule functionality will be available soon.');
+                });
+            });
+            
+            document.querySelectorAll('.appointment-btn.cancel').forEach(button => {
+                button.addEventListener('click', function() {
+                    if (confirm('Are you sure you want to cancel this appointment?')) {
+                        alert('Appointment cancelled successfully.');
+                        // In a real app, we would update the appointment status in the database
+                        // For now, just refresh the display
+                        displayAppointments();
+                    }
+                });
+            });
+            
+            document.querySelectorAll('.appointment-btn.details').forEach(button => {
+                button.addEventListener('click', function() {
+                    alert('Appointment details will be available soon.');
+                });
+            });
+        }
+        
+        // Add event listeners to filter controls
+        document.getElementById('status-filter').addEventListener('change', displayAppointments);
+        document.getElementById('date-filter').addEventListener('change', displayAppointments);
+        
+        // Call function to display appointments
+        displayAppointments();
+
+        // Sidebar navigation
+        document.querySelector('.nav-links li:nth-child(1)').addEventListener('click', function() {
+            window.location.href = 'patient-dashboard.html';
+        });
+        
+        document.querySelector('.nav-links li:nth-child(2)').addEventListener('click', function() {
+            window.location.href = 'book-appointment.html';
+        });
+        
+        document.querySelector('.nav-links li:nth-child(3)').addEventListener('click', function() {
+            window.location.href = 'appointment-history.html';
+        });
+        
+        document.querySelector('.nav-links li:nth-child(4)').addEventListener('click', function() {
+            window.location.href = 'medical-records.html';
+        });
+        
+        document.querySelector('.nav-links li:nth-child(5)').addEventListener('click', function() {
+            window.location.href = 'prescriptions.html';
+        });
+        
+        document.querySelector('.nav-links li:nth-child(6)').addEventListener('click', function() {
+            window.location.href = 'billing.html';
+        });
+        
+        document.querySelector('.nav-links li.logout').addEventListener('click', function() {
+            if (confirm('Are you sure you want to log out?')) {
+                window.location.href = '../index.html';
+            }
+        });
+    </script>
+</body>
+</html> 
