@@ -104,6 +104,15 @@ body {
     background: rgba(0,0,0,0.2);
 }
 
+.nav-links li.profile {
+    margin-top: auto;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.nav-links li.logout {
+    border-top: none;
+}
+
 .main-content {
     margin-left: 280px;
     padding: 25px;
@@ -317,4 +326,14 @@ header h1 {
 
 .record-type-examination {
     border-left-color: #FF9800;
+}
+
+.profile-link {
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.profile-link:hover {
+    color: #2196F3;
+    text-decoration: underline;
 } 

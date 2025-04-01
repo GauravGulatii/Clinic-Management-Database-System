@@ -99,6 +99,10 @@
                     <i class="fas fa-file-invoice-dollar"></i>
                     <span>Billing</span>
                 </li>
+                <li class="profile">
+                    <i class="fas fa-user-circle"></i>
+                    <span>My Profile</span>
+                </li>
                 <li class="logout">
                     <i class="fas fa-sign-out-alt"></i>
                     <span>Logout</span>
@@ -111,7 +115,7 @@
                 <h1 id="welcome-header">Welcome, <span id="username-display">Guest</span></h1>
                 <div class="user-info">
                     <i class="fas fa-user-circle"></i>
-                    <span id="profile-name">My Profile</span>
+                    <span id="profile-name" class="profile-link">My Profile</span>
                 </div>
             </header>
 
@@ -148,11 +152,30 @@
         </main>
     </div>
     
+    <script src="../pages/common.js"></script>
     <script>
-        // Get username from sessionStorage
-        let username = sessionStorage.getItem('username') || "Guest";
-        document.getElementById("username-display").textContent = username;
-        document.getElementById("profile-name").textContent = username;
+        // Get current patient ID from sessionStorage
+        const currentPatientId = sessionStorage.getItem('currentPatientId');
+        
+        // Redirect to login if no patient ID is found
+        if (!currentPatientId) {
+            window.location.href = '../index.html';
+        }
+        
+        // Get patient data from localStorage
+        function getCurrentPatient() {
+            const patients = JSON.parse(localStorage.getItem('patients')) || [];
+            return patients.find(p => p.id === currentPatientId) || null;
+        }
+        
+        // Load patient data
+        const currentPatient = getCurrentPatient();
+        
+        // Update welcome message and profile name
+        if (currentPatient) {
+            document.getElementById('username-display').textContent = currentPatient.firstName;
+            document.getElementById('profile-name').textContent = `${currentPatient.firstName} ${currentPatient.lastName}`;
+        }
         
         // Add event listeners for navigation
         document.querySelectorAll('.book-appointment-btn').forEach(button => {
@@ -187,6 +210,10 @@
             if (confirm('Are you sure you want to log out?')) {
                 window.location.href = '../index.html';
             }
+        });
+        
+        document.querySelector('.nav-links li.profile').addEventListener('click', function() {
+            window.location.href = 'profile.html';
         });
         
         // Display upcoming appointments
@@ -478,6 +505,10 @@
         displayRecentPrescriptions();
         displayMedicalRecordsSummary();
         displayBillingSummary();
+
+        document.getElementById('profile-name').addEventListener('click', function() {
+            window.location.href = 'profile.html';
+        });
     </script>
 </body>
 </html> 

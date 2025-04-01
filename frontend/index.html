@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Clinic Management System</title>
+    <link rel="stylesheet" href="styles/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        
+        .login-container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            padding: 30px;
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .login-header h1 {
+            color: #2196F3;
+            margin: 0;
+            font-size: 24px;
+        }
+        
+        .login-header p {
+            color: #757575;
+            margin-top: 5px;
+        }
+        
+        .login-form {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        
+        .form-group input:focus {
+            border-color: #2196F3;
+            outline: none;
+        }
+        
+        .login-btn {
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .login-btn:hover {
+            background-color: #0d8aee;
+        }
+        
+        .error-message {
+            color: #f44336;
+            margin-top: 15px;
+            text-align: center;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1>Patient Portal</h1>
+            <p>Please enter your credentials to login</p>
+        </div>
+        
+        <form class="login-form" id="login-form">
+            <div class="form-group">
+                <label for="patient-id">Patient ID</label>
+                <input type="text" id="patient-id" name="patient-id" placeholder="Enter your Patient ID (e.g. 12345678)" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Enter your password" required>
+            </div>
+            
+            <button type="submit" class="login-btn">Login</button>
+            
+            <div class="error-message" id="error-message">
+                Invalid Patient ID. Please try again.
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Sample patient data with IDs
+        const patients = [
+            {
+                id: '12345678',
+                firstName: 'John',
+                lastName: 'Doe',
+                dateOfBirth: '1985-01-15',
+                sex: 'Male',
+                phone: '(555) 123-4567',
+                address: '123 Main Street, Anytown, CA 12345'
+            },
+            {
+                id: '87654321',
+                firstName: 'Jane',
+                lastName: 'Smith',
+                dateOfBirth: '1990-05-20',
+                sex: 'Female',
+                phone: '(555) 987-6543',
+                address: '456 Oak Avenue, Somewhere, NY 54321'
+            }
+        ];
+        
+        // Store patient data in localStorage if not already present
+        if (!localStorage.getItem('patients')) {
+            localStorage.setItem('patients', JSON.stringify(patients));
+        } else {
+            // Update existing data to ensure IDs are in the correct format
+            const storedPatients = JSON.parse(localStorage.getItem('patients'));
+            const updatedPatients = storedPatients.map(patient => {
+                // Remove P- prefix if it exists
+                if (patient.id.startsWith('P-')) {
+                    patient.id = patient.id.substring(2);
+                }
+                return patient;
+            });
+            localStorage.setItem('patients', JSON.stringify(updatedPatients));
+        }
+        
+        // Handle form submission
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            let patientId = document.getElementById('patient-id').value;
+            
+            // Remove "P-" prefix if present
+            if (patientId.startsWith('P-')) {
+                patientId = patientId.substring(2);
+            }
+            
+            // Get patients from localStorage
+            const storedPatients = JSON.parse(localStorage.getItem('patients'));
+            
+            // Find patient with matching ID
+            const patient = storedPatients.find(p => p.id === patientId);
+            
+            if (patient) {
+                // Store current patient data in sessionStorage
+                sessionStorage.setItem('currentPatientId', patient.id);
+                
+                // Redirect to dashboard
+                window.location.href = 'pages/patient-dashboard.html';
+            } else {
+                // Show error message
+                document.getElementById('error-message').style.display = 'block';
+                
+                // For debugging
+                console.log('Entered ID:', patientId);
+                console.log('Available patients:', storedPatients);
+            }
+        });
+    </script>
+</body>
+</html> 

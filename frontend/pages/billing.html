@@ -233,6 +233,14 @@
                         <div class="summary-value" id="pending-bills">0</div>
                         <div class="summary-label">Pending Bills</div>
                     </div>
+                    <div class="summary-item">
+                        <div class="summary-value" id="paid-ytd">$0.00</div>
+                        <div class="summary-label">Paid (Year to Date)</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value" id="insurance-covered">$0.00</div>
+                        <div class="summary-label">Insurance Covered</div>
+                    </div>
                 </div>
 
                 <div class="filter-controls">
@@ -261,7 +269,9 @@
                         <tr>
                             <th>Date</th>
                             <th>Description</th>
-                            <th>Amount</th>
+                            <th>Total Amount</th>
+                            <th>Insurance</th>
+                            <th>Your Responsibility</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
@@ -280,7 +290,7 @@
         document.getElementById("profile-name").textContent = username;
         
         // Add event listeners for navigation
-        document.querySelector('.nav-links li:first-child').addEventListener('click', function() {
+        document.querySelector('.nav-links li:nth-child(1)').addEventListener('click', function() {
             window.location.href = 'patient-dashboard.html';
         });
         
@@ -307,6 +317,8 @@
                 date: '2023-05-15',
                 description: 'General Checkup',
                 amount: 150.00,
+                insurance: 120.00,
+                patientResponsibility: 30.00,
                 status: 'Paid',
                 paymentDate: '2023-05-20'
             },
@@ -315,6 +327,8 @@
                 date: '2023-04-10',
                 description: 'Blood Test',
                 amount: 200.00,
+                insurance: 160.00,
+                patientResponsibility: 40.00,
                 status: 'Pending',
                 dueDate: '2023-06-10'
             },
@@ -323,6 +337,8 @@
                 date: '2023-03-05',
                 description: 'X-Ray',
                 amount: 300.00,
+                insurance: 240.00,
+                patientResponsibility: 60.00,
                 status: 'Paid',
                 paymentDate: '2023-03-15'
             },
@@ -331,14 +347,48 @@
                 date: '2023-02-20',
                 description: 'Specialist Consultation',
                 amount: 250.00,
+                insurance: 200.00,
+                patientResponsibility: 50.00,
                 status: 'Paid',
                 paymentDate: '2023-02-25'
             },
             {
                 id: 'bill-005',
                 date: '2023-01-15',
-                description: 'Physical Therapy',
+                description: 'Prescription Medication',
+                amount: 75.00,
+                insurance: 60.00,
+                patientResponsibility: 15.00,
+                status: 'Paid',
+                paymentDate: '2023-01-20'
+            },
+            {
+                id: 'bill-006',
+                date: '2022-12-10',
+                description: 'Annual Physical',
                 amount: 180.00,
+                insurance: 144.00,
+                patientResponsibility: 36.00,
+                status: 'Paid',
+                paymentDate: '2022-12-15'
+            },
+            {
+                id: 'bill-007',
+                date: '2023-05-25',
+                description: 'MRI Scan',
+                amount: 800.00,
+                insurance: 640.00,
+                patientResponsibility: 160.00,
+                status: 'Pending',
+                dueDate: '2023-06-25'
+            },
+            {
+                id: 'bill-008',
+                date: '2023-04-05',
+                description: 'Emergency Room Visit',
+                amount: 1200.00,
+                insurance: 960.00,
+                patientResponsibility: 240.00,
                 status: 'Overdue',
                 dueDate: '2023-05-05'
             }
@@ -355,11 +405,22 @@
             
             // Calculate total due
             const pendingBills = billingData.filter(bill => bill.status === 'Pending' || bill.status === 'Overdue');
-            const totalDue = pendingBills.reduce((total, bill) => total + bill.amount, 0);
+            const totalDue = pendingBills.reduce((total, bill) => total + bill.patientResponsibility, 0);
             document.getElementById('total-due').textContent = `$${totalDue.toFixed(2)}`;
             
             // Count pending bills
             document.getElementById('pending-bills').textContent = pendingBills.length;
+            
+            // Calculate paid year to date
+            const currentYear = new Date().getFullYear();
+            const paidYTD = billingData
+                .filter(bill => bill.status === 'Paid' && new Date(bill.paymentDate).getFullYear() === currentYear)
+                .reduce((total, bill) => total + bill.patientResponsibility, 0);
+            document.getElementById('paid-ytd').textContent = `$${paidYTD.toFixed(2)}`;
+            
+            // Calculate insurance covered
+            const insuranceCovered = billingData.reduce((total, bill) => total + bill.insurance, 0);
+            document.getElementById('insurance-covered').textContent = `$${insuranceCovered.toFixed(2)}`;
         }
         
         // Display billing data
@@ -401,7 +462,7 @@
             
             // Check if any bills match the filters
             if (filteredBills.length === 0) {
-                billingList.innerHTML = '<tr><td colspan="5" style="text-align: center;">No billing records found matching the selected filters</td></tr>';
+                billingList.innerHTML = '<tr><td colspan="7" style="text-align: center;">No billing records found matching the selected filters</td></tr>';
                 return;
             }
             
@@ -421,6 +482,8 @@
                     <td>${formattedDate}</td>
                     <td>${bill.description}</td>
                     <td>$${bill.amount.toFixed(2)}</td>
+                    <td>$${bill.insurance.toFixed(2)}</td>
+                    <td>$${bill.patientResponsibility.toFixed(2)}</td>
                     <td><span class="status-${bill.status.toLowerCase()}">${bill.status}</span></td>
                     <td>
                         <button class="invoice-btn" data-id="${bill.id}">View Invoice</button>
@@ -451,7 +514,7 @@
                     const billIndex = billingData.findIndex(bill => bill.id === billId);
                     
                     if (billIndex !== -1) {
-                        if (confirm(`Proceed to payment for $${billingData[billIndex].amount.toFixed(2)}?`)) {
+                        if (confirm(`Proceed to payment for $${billingData[billIndex].patientResponsibility.toFixed(2)}?`)) {
                             // Update bill status to paid
                             billingData[billIndex].status = 'Paid';
                             billingData[billIndex].paymentDate = new Date().toISOString().split('T')[0];
@@ -477,6 +540,10 @@
         // Initialize the page
         updateBillingSummary();
         displayBillingData();
+
+        document.getElementById('profile-name').addEventListener('click', function() {
+            window.location.href = 'profile.html';
+        });
     </script>
 </body>
 </html> 
