@@ -25,14 +25,7 @@ function getCurrentPatient() {
     return patients.find(p => p.id === currentPatientId) || null;
 }
 
-// Update header with patient name
-function updateHeader() {
-    const currentPatient = getCurrentPatient();
-    if (currentPatient) {
-        document.getElementById('username-display').textContent = currentPatient.firstName;
-        document.getElementById('profile-name').textContent = `${currentPatient.firstName} ${currentPatient.lastName}`;
-    }
-}
+
 
 // Check if user is logged in, redirect to login if not
 function checkLogin() {

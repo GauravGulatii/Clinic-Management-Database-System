@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Dashboard - Clinic Management System</title>
+    <link rel="stylesheet" href="../styles/styles.css">
+    <link rel="stylesheet" href="../styles/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        .dashboard-container {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        .main-content {
+            padding: 15px;
+            overflow-y: auto;
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <nav class="sidebar">
+            <div class="logo">
+                <i class="fas fa-hospital-symbol"></i>
+                <h2>Staff Portal</h2>
+            </div>
+            <ul class="nav-links">
+                <li class="active">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </li>
+                <li class="logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <header>
+                <h1 id="welcome-header">Staff Dashboard</h1>
+            </header>
+            <div id="staff-content">
+                <!-- Content will be populated later -->
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        // Get staff ID from sessionStorage
+        const staffId = sessionStorage.getItem('currentStaffId');
+        
+        // Redirect to login if no staff ID is found
+        if (!staffId) {
+            window.location.href = '../index.html';
+        }
+
+        // Add event listeners for navigation
+        document.querySelector('.nav-links li:first-child').addEventListener('click', function() {
+            window.location.href = 'staff-dashboard.html';
+        });
+
+        document.querySelector('.nav-links li.logout').addEventListener('click', function() {
+            if (confirm('Are you sure you want to log out?')) {
+                sessionStorage.removeItem('currentStaffId');
+                window.location.href = '../index.html';
+            }
+        });
+    </script>
+</body>
+</html> 

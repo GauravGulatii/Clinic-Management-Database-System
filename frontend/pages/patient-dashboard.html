@@ -83,22 +83,6 @@
                     <i class="fas fa-calendar-alt"></i>
                     <span>Book Appointment</span>
                 </li>
-                <li>
-                    <i class="fas fa-history"></i>
-                    <span>Appointment History</span>
-                </li>
-                <li>
-                    <i class="fas fa-file-medical"></i>
-                    <span>Medical Records</span>
-                </li>
-                <li>
-                    <i class="fas fa-prescription"></i>
-                    <span>Prescriptions</span>
-                </li>
-                <li>
-                    <i class="fas fa-file-invoice-dollar"></i>
-                    <span>Billing</span>
-                </li>
                 <li class="logout">
                     <i class="fas fa-sign-out-alt"></i>
                     <span>Logout</span>
@@ -108,10 +92,7 @@
 
         <main class="main-content">
             <header>
-                <h1 id="welcome-header">Welcome</h1>
-                <div class="user-info">
-                    <i class="fas fa-user-circle"></i>
-                </div>
+                <h1 id="welcome-header">Dashboard</h1>
             </header>
 
             <div class="dashboard-grid">
@@ -121,30 +102,6 @@
                         <p>No upcoming appointments</p>
                     </div>
                     <button class="action-btn book-appointment-btn">Book New Appointment</button>
-                </div>
-                <div class="card">
-                    <h3>Recent Prescriptions</h3>
-                    <div id="prescription-list">
-                        <!-- Prescription list will be populated by JavaScript -->
-                    </div>
-                    <button class="action-btn" id="view-prescriptions-btn">View All</button>
-                </div>
-                <div class="card">
-                    <h3>Medical Records</h3>
-                    <div id="medical-records-summary">
-                        <!-- Medical records summary will be populated by JavaScript -->
-                    </div>
-                    <button class="action-btn" id="view-records-btn">View Records</button>
-                </div>
-                <div class="card">
-                    <h3>Upcoming Tests</h3>
-                    <p>No scheduled tests</p>
-                    <button class="action-btn">Schedule Test</button>
-                </div>
-                <div class="card">
-                    <h3>Billing Status</h3>
-                    <p>No pending bills</p>
-                    <button class="action-btn" id="view-billing-btn">View History</button>
                 </div>
             </div>
         </main>
@@ -163,21 +120,7 @@
             window.location.href = 'book-appointment.html';
         });
 
-        document.querySelector('.nav-links li:nth-child(3)').addEventListener('click', function() {
-            window.location.href = 'appointment-history.html';
-        });
-
-        document.querySelector('.nav-links li:nth-child(4)').addEventListener('click', function() {
-            window.location.href = 'medical-records.html';
-        });
-
-        document.querySelector('.nav-links li:nth-child(5)').addEventListener('click', function() {
-            window.location.href = 'prescriptions.html';
-        });
-
-        document.querySelector('.nav-links li:nth-child(6)').addEventListener('click', function() {
-            window.location.href = 'billing.html';
-        });
+    
 
         document.querySelector('.nav-links li.logout').addEventListener('click', function() {
             if (confirm('Are you sure you want to log out?')) {
@@ -187,27 +130,10 @@
         });
 
         // Add event listeners for dashboard card buttons
-        document.getElementById('view-prescriptions-btn').addEventListener('click', function() {
-            window.location.href = 'prescriptions.html';
-        });
-
-        document.getElementById('view-records-btn').addEventListener('click', function() {
-            window.location.href = 'medical-records.html';
-        });
-
-        document.getElementById('view-billing-btn').addEventListener('click', function() {
-            window.location.href = 'billing.html';
-        });
-
         document.querySelectorAll('.book-appointment-btn').forEach(button => {
             button.addEventListener('click', function() {
                 window.location.href = 'book-appointment.html';
             });
-        });
-
-        // Add click event to the user icon instead
-        document.querySelector('.user-info').addEventListener('click', function() {
-            window.location.href = 'profile.html';
         });
         
         // Display upcoming appointments
@@ -265,171 +191,8 @@
             }
         }
         
-        // Mock prescription data
-        const mockPrescriptions = [
-            {
-                id: 'rx-001',
-                medication: 'Amoxicillin',
-                dosage: '500mg',
-                frequency: 'Three times daily',
-                duration: '7 days',
-                doctor: 'Dr. Smith',
-                date: '2023-06-15',
-                refills: 0,
-                status: 'Active'
-            },
-            {
-                id: 'rx-002',
-                medication: 'Lisinopril',
-                dosage: '10mg',
-                frequency: 'Once daily',
-                duration: '30 days',
-                doctor: 'Dr. Johnson',
-                date: '2023-05-20',
-                refills: 2,
-                status: 'Active'
-            },
-            {
-                id: 'rx-003',
-                medication: 'Ibuprofen',
-                dosage: '400mg',
-                frequency: 'As needed',
-                duration: '10 days',
-                doctor: 'Dr. Williams',
-                date: '2023-04-10',
-                refills: 0,
-                status: 'Expired'
-            }
-        ];
-        
-        // Store mock prescriptions in localStorage if not already present
-        if (!localStorage.getItem('prescriptions')) {
-            localStorage.setItem('prescriptions', JSON.stringify(mockPrescriptions));
-        }
-        
-        // Display recent prescriptions
-        function displayRecentPrescriptions() {
-            const prescriptions = JSON.parse(localStorage.getItem('prescriptions')) || [];
-            const prescriptionList = document.getElementById('prescription-list');
-            
-            if (prescriptions.length === 0) {
-                prescriptionList.innerHTML = '<p>No recent prescriptions</p>';
-                return;
-            }
-            
-            // Sort prescriptions by date (newest first)
-            prescriptions.sort((a, b) => new Date(b.date) - new Date(a.date));
-            
-            // Display up to 2 most recent prescriptions
-            prescriptionList.innerHTML = '';
-            prescriptions.slice(0, 2).forEach(prescription => {
-                const prescriptionItem = document.createElement('div');
-                prescriptionItem.className = 'prescription-item';
-                
-                const formattedDate = new Date(prescription.date).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric'
-                });
-                
-                prescriptionItem.innerHTML = `
-                    <p><strong>${prescription.medication}</strong> ${prescription.dosage}</p>
-                    <p>${prescription.frequency}</p>
-                    <p>Prescribed: ${formattedDate}</p>
-                    <p><span class="status-${prescription.status.toLowerCase()}">${prescription.status}</span></p>
-                `;
-                
-                prescriptionList.appendChild(prescriptionItem);
-            });
-            
-            if (prescriptions.length > 2) {
-                const morePrescriptions = document.createElement('p');
-                morePrescriptions.textContent = `+ ${prescriptions.length - 2} more prescriptions`;
-                morePrescriptions.style.textAlign = 'center';
-                morePrescriptions.style.fontStyle = 'italic';
-                prescriptionList.appendChild(morePrescriptions);
-            }
-        }
-        
-        // Mock medical records data
-        const mockMedicalRecords = [
-            {
-                id: 'mr-001',
-                type: 'Lab Test',
-                name: 'Complete Blood Count (CBC)',
-                date: '2023-05-10',
-                doctor: 'Dr. Smith',
-                results: 'Normal',
-                notes: 'All values within normal range.'
-            },
-            {
-                id: 'mr-002',
-                type: 'Imaging',
-                name: 'Chest X-Ray',
-                date: '2023-04-15',
-                doctor: 'Dr. Johnson',
-                results: 'Normal',
-                notes: 'No abnormalities detected.'
-            },
-            {
-                id: 'mr-003',
-                type: 'Vaccination',
-                name: 'Influenza Vaccine',
-                date: '2023-03-20',
-                doctor: 'Dr. Williams',
-                results: 'Completed',
-                notes: 'Annual flu vaccination administered.'
-            },
-            {
-                id: 'mr-004',
-                type: 'Physical Examination',
-                name: 'Annual Checkup',
-                date: '2023-02-05',
-                doctor: 'Dr. Smith',
-                results: 'Completed',
-                notes: 'Patient in good health. Blood pressure slightly elevated, recommended lifestyle changes.'
-            }
-        ];
-        
-        // Store mock medical records in localStorage if not already present
-        if (!localStorage.getItem('medicalRecords')) {
-            localStorage.setItem('medicalRecords', JSON.stringify(mockMedicalRecords));
-        }
-        
-        // Display medical records summary
-        function displayMedicalRecordsSummary() {
-            const medicalRecords = JSON.parse(localStorage.getItem('medicalRecords')) || [];
-            const medicalRecordsSummary = document.getElementById('medical-records-summary');
-            
-            if (medicalRecords.length === 0) {
-                medicalRecordsSummary.innerHTML = '<p>No medical records available</p>';
-                return;
-            }
-            
-            // Sort records by date (newest first)
-            medicalRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
-            
-            // Get the most recent record
-            const latestRecord = medicalRecords[0];
-            
-            // Format date
-            const formattedDate = new Date(latestRecord.date).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
-            });
-            
-            medicalRecordsSummary.innerHTML = `
-                <p><strong>Last updated:</strong> ${formattedDate}</p>
-                <p><strong>Recent record:</strong> ${latestRecord.name}</p>
-                <p><strong>Type:</strong> ${latestRecord.type}</p>
-            `;
-        }
-        
         // Call functions to display data
         displayUpcomingAppointments();
-        displayRecentPrescriptions();
-        displayMedicalRecordsSummary();
 
         // Get current patient ID from session storage
         const currentPatientId = sessionStorage.getItem('currentPatientId');
