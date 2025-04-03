@@ -99,14 +99,14 @@
 <body>
     <div class="login-container">
         <div class="login-header">
-            <h1>Patient Portal</h1>
+            <h1>Login Portal</h1>
             <p>Please enter your credentials to login</p>
         </div>
         
         <form class="login-form" id="login-form">
             <div class="form-group">
-                <label for="patient-id">Patient ID</label>
-                <input type="text" id="patient-id" name="patient-id" placeholder="Enter your Patient ID (e.g. 12345678)" required>
+                <label for="user-id">ID</label>
+                <input type="text" id="user-id" name="user-id" placeholder="Enter your ID (e.g. 12345678)" required>
             </div>
             
             <div class="form-group">
@@ -132,17 +132,7 @@
                 dateOfBirth: '1985-01-15',
                 sex: 'Male',
                 phone: '(555) 123-4567',
-                address: '123 Main Street, Anytown, CA 12345'
             },
-            {
-                id: '87654321',
-                firstName: 'Jane',
-                lastName: 'Smith',
-                dateOfBirth: '1990-05-20',
-                sex: 'Female',
-                phone: '(555) 987-6543',
-                address: '456 Oak Avenue, Somewhere, NY 54321'
-            }
         ];
         
         // Store patient data in localStorage if not already present
@@ -161,36 +151,30 @@
             localStorage.setItem('patients', JSON.stringify(updatedPatients));
         }
         
-        // Handle form submission
+        // Handle login form submission
         document.getElementById('login-form').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            let patientId = document.getElementById('patient-id').value;
+            const userId = document.getElementById('user-id').value;
+            const password = document.getElementById('password').value;
             
-            // Remove "P-" prefix if present
-            if (patientId.startsWith('P-')) {
-                patientId = patientId.substring(2);
+            // Check if it's a staff login (ID starts with 'S')
+            if (userId.toUpperCase().startsWith('S')) {
+                // For staff, any password is accepted for now
+                sessionStorage.setItem('currentStaffId', userId);
+                window.location.href = 'pages/staff-dashboard.html';
+                return;
             }
             
-            // Get patients from localStorage
-            const storedPatients = JSON.parse(localStorage.getItem('patients'));
-            
-            // Find patient with matching ID
-            const patient = storedPatients.find(p => p.id === patientId);
+            // For patients, continue with existing login logic
+            const patients = JSON.parse(localStorage.getItem('patients')) || [];
+            const patient = patients.find(p => p.id === userId);
             
             if (patient) {
-                // Store current patient data in sessionStorage
                 sessionStorage.setItem('currentPatientId', patient.id);
-                
-                // Redirect to dashboard
                 window.location.href = 'pages/patient-dashboard.html';
             } else {
-                // Show error message
-                document.getElementById('error-message').style.display = 'block';
-                
-                // For debugging
-                console.log('Entered ID:', patientId);
-                console.log('Available patients:', storedPatients);
+                alert('Invalid ID or password');
             }
         });
     </script>
