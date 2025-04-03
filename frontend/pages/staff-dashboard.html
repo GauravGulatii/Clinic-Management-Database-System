@@ -27,6 +27,274 @@
             overflow-y: auto;
             flex: 1;
         }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .dashboard-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .dashboard-card h3 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid;
+            padding-bottom: 10px;
+        }
+
+        .dashboard-card p {
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .action-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .action-list li {
+            margin: 10px 0;
+        }
+
+        .action-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+            font-weight: 500;
+        }
+
+        /* Appointments buttons */
+        .dashboard-card:nth-child(1) .action-btn {
+            background: #4CAF50;
+        }
+        .dashboard-card:nth-child(1) .action-btn:hover {
+            background: #388E3C;
+        }
+
+        /* Medical Records buttons */
+        .dashboard-card:nth-child(2) .action-btn {
+            background: #2196F3;
+        }
+        .dashboard-card:nth-child(2) .action-btn:hover {
+            background: #1976D2;
+        }
+
+        /* Prescriptions buttons */
+        .dashboard-card:nth-child(3) .action-btn {
+            background: #9C27B0;
+        }
+        .dashboard-card:nth-child(3) .action-btn:hover {
+            background: #7B1FA2;
+        }
+
+        /* Billing buttons */
+        .dashboard-card:nth-child(4) .action-btn {
+            background: #FF9800;
+        }
+        .dashboard-card:nth-child(4) .action-btn:hover {
+            background: #F57C00;
+        }
+
+        .action-btn i {
+            margin-right: 10px;
+            width: 20px;
+        }
+
+        /* Matching header border colors */
+        .dashboard-card:nth-child(1) h3 {
+            border-color: #4CAF50;
+        }
+        .dashboard-card:nth-child(2) h3 {
+            border-color: #2196F3;
+        }
+        .dashboard-card:nth-child(3) h3 {
+            border-color: #9C27B0;
+        }
+        .dashboard-card:nth-child(4) h3 {
+            border-color: #FF9800;
+        }
+
+        .search-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .search-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-tab {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background: #f5f5f5;
+            font-weight: 500;
+        }
+
+        .search-tab.active {
+            background: #2196F3;
+            color: white;
+        }
+
+        .search-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .search-btn {
+            padding: 10px 20px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .search-btn:hover {
+            background: #1976D2;
+        }
+
+        .search-results {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .search-results.active {
+            display: block;
+        }
+
+        .patient-info {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .patient-info h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+
+        .patient-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .detail-item {
+            margin-bottom: 5px;
+        }
+
+        .detail-label {
+            font-weight: bold;
+            color: #666;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .action-buttons button {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .view-btn {
+            background: #2196F3;
+            color: white;
+        }
+
+        .edit-btn {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .delete-btn {
+            background: #f44336;
+            color: white;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-style: italic;
+        }
+
+        /* Doctor table styles */
+        .doctor-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .doctor-table th, .doctor-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .doctor-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .doctor-table tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .doctor-table .action-cell {
+            text-align: center;
+        }
+
+        .select-doctor-btn {
+            padding: 6px 12px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .select-doctor-btn:hover {
+            background: #1976D2;
+        }
     </style>
 </head>
 <body>
@@ -52,8 +320,60 @@
             <header>
                 <h1 id="welcome-header">Staff Dashboard</h1>
             </header>
-            <div id="staff-content">
-                <!-- Content will be populated later -->
+
+            <!-- Search Section -->
+            <div class="search-section">
+                
+
+                <div id="patient-search" class="search-content active">
+                    <div class="search-form">
+                        <input type="text" class="search-input" id="patient-search-input" placeholder="Enter patient ID or name">
+                        <button class="search-btn" onclick="searchPatient()">Search</button>
+                    </div>
+                    <div id="patient-results" class="search-results">
+                        <!-- Patient search results will be displayed here -->
+                    </div>
+                </div>
+
+                <div id="doctor-search" class="search-content">
+                    <div class="search-form">
+                        <input type="text" class="search-input" id="doctor-search-input" placeholder="Enter doctor ID or name">
+                        <button class="search-btn" onclick="searchDoctor()">Search</button>
+                    </div>
+                    <div id="doctor-results" class="search-results">
+                        <!-- Doctor search results will be displayed here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Selected Patient Info -->
+            <div id="selected-patient" style="display: none;">
+                <div class="patient-info">
+                    <h3>Selected Patient</h3>
+                    <div class="patient-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Name:</span>
+                            <span id="patient-name"></span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">ID:</span>
+                            <span id="patient-id"></span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Age:</span>
+                            <span id="patient-age"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dashboard Grid -->
+            <div class="dashboard-grid">
+                <!-- Search Instructions -->
+                <div class="dashboard-card">
+                    <h3>Instructions</h3>
+                    <p>Search for a patient or doctor using the search bar above. Select a patient to manage their appointments, medical records, and prescriptions.</p>
+                </div>
             </div>
         </main>
     </div>
@@ -61,6 +381,56 @@
     <script>
         // Get staff ID from sessionStorage
         const staffId = sessionStorage.getItem('currentStaffId');
+        let selectedPatientId = null;
+        let selectedDoctorId = null;
+        
+        // Mock data for testing
+        const mockPatients = [
+            {
+                id: '12345678',
+                firstName: 'John',
+                lastName: 'Doe',
+                dateOfBirth: '1985-01-15',
+                sex: 'Male',
+                phone: '(555) 123-4567',
+                address: '123 Main St, Anytown, USA'
+            },
+            {
+                id: '87654321',
+                firstName: 'Jane',
+                lastName: 'Smith',
+                dateOfBirth: '1990-05-22',
+                sex: 'Female',
+                phone: '(555) 987-6543',
+                address: '456 Oak Ave, Somewhere, USA'
+            }
+        ];
+
+        const mockDoctors = [
+            { 
+                id: 'D001', 
+                name: 'Dr. Smith', 
+                specialization: 'General Medicine',
+                availability: 'Mon-Fri, 9AM-5PM'
+            },
+            { 
+                id: 'D002', 
+                name: 'Dr. Johnson', 
+                specialization: 'Cardiology',
+                availability: 'Mon-Thu, 10AM-6PM'
+            },
+            { 
+                id: 'D003', 
+                name: 'Dr. Williams', 
+                specialization: 'Pediatrics',
+                availability: 'Tue-Sat, 8AM-4PM'
+            }
+        ];
+
+        // Store mock data in localStorage if not already present
+        if (!localStorage.getItem('patients')) {
+            localStorage.setItem('patients', JSON.stringify(mockPatients));
+        }
         
         // Redirect to login if no staff ID is found
         if (!staffId) {
@@ -77,6 +447,172 @@
                 sessionStorage.removeItem('currentStaffId');
                 window.location.href = '../index.html';
             }
+        });
+
+        // Add event listeners for search buttons
+        document.getElementById('patient-search-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchPatient();
+            }
+        });
+
+        document.getElementById('doctor-search-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchDoctor();
+            }
+        });
+
+        // Switch between patient and doctor search
+        function switchSearchTab(tab) {
+            document.querySelectorAll('.search-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.search-content').forEach(c => c.classList.remove('active'));
+            
+            if (tab === 'patient') {
+                document.querySelector('.search-tab:first-child').classList.add('active');
+                document.getElementById('patient-search').classList.add('active');
+                document.getElementById('patient-results').classList.add('active');
+            } else {
+                document.querySelector('.search-tab:last-child').classList.add('active');
+                document.getElementById('doctor-search').classList.add('active');
+                document.getElementById('doctor-results').classList.add('active');
+            }
+        }
+
+        // Search for a patient
+        function searchPatient() {
+            const searchTerm = document.getElementById('patient-search-input').value.toLowerCase();
+            const patients = JSON.parse(localStorage.getItem('patients')) || [];
+            const resultsDiv = document.getElementById('patient-results');
+            
+            // Show results container
+            resultsDiv.classList.add('active');
+            
+            // If search term is empty, show all patients
+            const matchingPatients = searchTerm === '' 
+                ? patients 
+                : patients.filter(patient => 
+                    patient.id.toLowerCase().includes(searchTerm) ||
+                    `${patient.firstName} ${patient.lastName}`.toLowerCase().includes(searchTerm)
+                );
+
+            if (matchingPatients.length === 0) {
+                resultsDiv.innerHTML = '<div class="no-results">No patients found</div>';
+                return;
+            }
+
+            resultsDiv.innerHTML = matchingPatients.map(patient => `
+                <div class="patient-info">
+                    <h3>${patient.firstName} ${patient.lastName}</h3>
+                    <div class="patient-details">
+                        <div class="detail-item">
+                            <span class="detail-label">ID:</span>
+                            <span>${patient.id}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Age:</span>
+                            <span>${calculateAge(patient.dateOfBirth)}</span>
+                        </div>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="view-btn" onclick="selectPatient('${patient.id}')">Select Patient</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Search for a doctor
+        function searchDoctor() {
+            const searchTerm = document.getElementById('doctor-search-input').value.toLowerCase();
+            const resultsDiv = document.getElementById('doctor-results');
+            
+            // Show results container
+            resultsDiv.classList.add('active');
+            
+            // If search term is empty, show all doctors
+            const matchingDoctors = searchTerm === '' 
+                ? mockDoctors 
+                : mockDoctors.filter(doctor => 
+                    doctor.id.toLowerCase().includes(searchTerm) ||
+                    doctor.name.toLowerCase().includes(searchTerm)
+                );
+
+            if (matchingDoctors.length === 0) {
+                resultsDiv.innerHTML = '<div class="no-results">No doctors found</div>';
+                return;
+            }
+
+            // Create table for doctor results
+            let tableHTML = `
+                <table class="doctor-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Specialization</th>
+                            <th>Availability</th>
+                            <th class="action-cell">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            matchingDoctors.forEach(doctor => {
+                tableHTML += `
+                    <tr>
+                        <td>${doctor.id}</td>
+                        <td>${doctor.name}</td>
+                        <td>${doctor.specialization}</td>
+                        <td>${doctor.availability}</td>
+                        <td class="action-cell">
+                            <button class="select-doctor-btn" onclick="selectDoctor('${doctor.id}')">Select</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tableHTML += `
+                    </tbody>
+                </table>
+            `;
+
+            resultsDiv.innerHTML = tableHTML;
+        }
+
+        // Select a patient and display their information
+        function selectPatient(patientId) {
+            // Redirect to patient management page with patient ID
+            window.location.href = `patient-management.html?id=${patientId}`;
+        }
+
+        // Select a doctor
+        function selectDoctor(doctorId) {
+            // Store the selected doctor ID in sessionStorage
+            sessionStorage.setItem('currentDoctorId', doctorId);
+            // Redirect to doctor dashboard
+            window.location.href = 'doctor-dashboard.html';
+        }
+
+        // Calculate age from date of birth
+        function calculateAge(dateOfBirth) {
+            const today = new Date();
+            const birthDate = new Date(dateOfBirth);
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            
+            return age;
+        }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show all patients by default
+            searchPatient();
+            
+            // Show all doctors by default
+            searchDoctor();
         });
     </script>
 </body>
