@@ -1,619 +1,392 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Staff Dashboard - Clinic Management System</title>
-    <link rel="stylesheet" href="../styles/styles.css">
-    <link rel="stylesheet" href="../styles/dashboard.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            width: 100vw;
-            height: 100vh;
-        }
-        
-        .dashboard-container {
-            display: flex;
-            width: 100vw;
-            height: 100vh;
-        }
-        
-        .main-content {
-            padding: 15px;
-            overflow-y: auto;
-            flex: 1;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Staff Dashboard – Clinic CMS</title>
 
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            padding: 20px;
-        }
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+/* ──── base / layout (unchanged) ──── */
+*{box-sizing:border-box;margin:0;padding:0;font-family:Arial,Helvetica,sans-serif}
+body{height:100vh;display:flex;overflow:hidden;color:#333;background:#f5f7fa}
+.sidebar{width:250px;background:#2c3e50;color:#fff;display:flex;flex-direction:column}
+.sidebar .logo{padding:24px 16px;border-bottom:1px solid rgba(255,255,255,.08);text-align:center}
+.sidebar .logo i{font-size:32px;color:#4caf50;margin-bottom:6px}
+.sidebar .nav-links{list-style:none;margin-top:10px;flex:1}
+.sidebar .nav-links li{display:flex;align-items:center;gap:12px;padding:14px 20px;cursor:pointer;transition:.25s}
+.sidebar .nav-links li:hover,.sidebar .nav-links li.active{background:rgba(255,255,255,.12)}
+.sidebar .nav-links li.logout{margin-top:auto;background:rgba(0,0,0,.25)}
+main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+header{padding:18px 24px;background:#fff;border-bottom:1px solid #e0e0e0}
+header h1{font-size:24px;font-weight:600}
 
-        .dashboard-card {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
+/* ──── generic controls & buttons ──── */
+.controls{display:flex;flex-wrap:wrap;gap:10px;padding:16px;background:#fff;border-bottom:1px solid #e0e0e0}
+.search-input{padding:10px 18px;border:1px solid #c2c8d0;border-radius:24px;min-width:240px;font-size:15px;transition:.25s;background:#fff}
+.search-input:focus{outline:none;border-color:#2196f3;box-shadow:0 0 0 3px rgba(33,150,243,.15)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;font-weight:600;border:none;border-radius:6px;cursor:pointer;color:#fff;transition:.2s}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.btn-add{background:linear-gradient(135deg,#42a5f5,#66bb6a)}
+.btn-add:hover{background:linear-gradient(135deg,#1e88e5,#43a047)}
+.btn-del{background:linear-gradient(135deg,#ef5350,#e53935)}
+.btn-del:hover{background:linear-gradient(135deg,#e53935,#c62828)}
+.btn-primary{background:#2196f3}.btn-primary:hover{background:#1976d2}
+.btn-success{background:#4caf50}.btn-success:hover{background:#3d8c44}
+.btn-schedule{background:linear-gradient(135deg,#ffa726,#fb8c00)}
+.btn-schedule:hover{background:linear-gradient(135deg,#fb8c00,#ef6c00)}
 
-        .dashboard-card h3 {
-            margin-top: 0;
-            color: #333;
-            border-bottom: 2px solid;
-            padding-bottom: 10px;
-        }
+/* ──── tables ──── */
+.table-wrapper{flex:1;overflow:auto;background:#fff}
+.table-wrapper.hidden{display:none}
+.table-wrapper + .table-wrapper{border-top:4px solid #e0e0e0}
 
-        .dashboard-card p {
-            color: #666;
-            line-height: 1.5;
-        }
+ table{width:100%;border-collapse:collapse;font-size:14px;min-width:640px}
+ thead th{position:sticky;top:0;background:#2196f3;color:#fff;padding:12px;text-align:left;letter-spacing:.04em}
+ tbody td{padding:12px;border-bottom:1px solid #eee}
+ tbody tr:nth-child(even){background:#f9fbfd}
+ tbody tr:hover{background:#eef6ff;cursor:pointer}
+ tbody tr.selected{background:#d6ebff}
+ .no-data td{text-align:center;color:#777;padding:24px}
 
-        .action-list {
-            list-style: none;
-            padding: 0;
-        }
+/* ──── modal window ──── */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:999}
+.modal-box{width:340px;background:#fff;border-radius:8px;padding:22px;box-shadow:0 6px 24px rgba(0,0,0,.18)}
+.modal-box h3{margin-bottom:12px}
+.modal-box label{font-size:14px;display:block;margin:10px 0 4px}
+.modal-actions{margin-top:18px;text-align:right}
 
-        .action-list li {
-            margin: 10px 0;
-        }
+/* ──── toast ──── */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);min-width:220px;max-width:320px;padding:12px 18px;background:#323232;color:#fff;border-radius:24px;display:none;box-shadow:0 4px 12px rgba(0,0,0,.25);z-index:1000}
+#toast.show{display:block;animation:fade 3.6s forwards}
+@keyframes fade{0%{opacity:0;transform:translate(-50%,30px)}10%,90%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,30px)} }
 
-        .action-btn {
-            display: block;
-            width: 100%;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            text-align: left;
-            cursor: pointer;
-            transition: all 0.3s;
-            color: white;
-            font-weight: 500;
-        }
-
-        /* Appointments buttons */
-        .dashboard-card:nth-child(1) .action-btn {
-            background: #4CAF50;
-        }
-        .dashboard-card:nth-child(1) .action-btn:hover {
-            background: #388E3C;
-        }
-
-        /* Medical Records buttons */
-        .dashboard-card:nth-child(2) .action-btn {
-            background: #2196F3;
-        }
-        .dashboard-card:nth-child(2) .action-btn:hover {
-            background: #1976D2;
-        }
-
-        /* Prescriptions buttons */
-        .dashboard-card:nth-child(3) .action-btn {
-            background: #9C27B0;
-        }
-        .dashboard-card:nth-child(3) .action-btn:hover {
-            background: #7B1FA2;
-        }
-
-        /* Billing buttons */
-        .dashboard-card:nth-child(4) .action-btn {
-            background: #FF9800;
-        }
-        .dashboard-card:nth-child(4) .action-btn:hover {
-            background: #F57C00;
-        }
-
-        .action-btn i {
-            margin-right: 10px;
-            width: 20px;
-        }
-
-        /* Matching header border colors */
-        .dashboard-card:nth-child(1) h3 {
-            border-color: #4CAF50;
-        }
-        .dashboard-card:nth-child(2) h3 {
-            border-color: #2196F3;
-        }
-        .dashboard-card:nth-child(3) h3 {
-            border-color: #9C27B0;
-        }
-        .dashboard-card:nth-child(4) h3 {
-            border-color: #FF9800;
-        }
-
-        .search-section {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .search-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .search-tab {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            background: #f5f5f5;
-            font-weight: 500;
-        }
-
-        .search-tab.active {
-            background: #2196F3;
-            color: white;
-        }
-
-        .search-form {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .search-input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-
-        .search-btn {
-            padding: 10px 20px;
-            background: #2196F3;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .search-btn:hover {
-            background: #1976D2;
-        }
-
-        .search-results {
-            margin-top: 20px;
-            display: none;
-        }
-
-        .search-results.active {
-            display: block;
-        }
-
-        .patient-info {
-            background: #f5f5f5;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
-
-        .patient-info h3 {
-            margin: 0 0 10px 0;
-            color: #333;
-        }
-
-        .patient-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 10px;
-        }
-
-        .detail-item {
-            margin-bottom: 5px;
-        }
-
-        .detail-label {
-            font-weight: bold;
-            color: #666;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        .action-buttons button {
-            padding: 5px 10px;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-
-        .view-btn {
-            background: #2196F3;
-            color: white;
-        }
-
-        .edit-btn {
-            background: #4CAF50;
-            color: white;
-        }
-
-        .delete-btn {
-            background: #f44336;
-            color: white;
-        }
-
-        .no-results {
-            text-align: center;
-            padding: 20px;
-            color: #666;
-            font-style: italic;
-        }
-
-        /* Doctor table styles */
-        .doctor-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            background: white;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        .doctor-table th, .doctor-table td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .doctor-table th {
-            background-color: #f8f9fa;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .doctor-table tr:hover {
-            background-color: #f5f5f5;
-        }
-
-        .doctor-table .action-cell {
-            text-align: center;
-        }
-
-        .select-doctor-btn {
-            padding: 6px 12px;
-            background: #2196F3;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-
-        .select-doctor-btn:hover {
-            background: #1976D2;
-        }
-    </style>
+/* responsive sidebar */
+@media(max-width:768px){
+  .sidebar{width:70px}.sidebar span{display:none}
+  table{font-size:13px}
+}
+</style>
 </head>
 <body>
-    <div class="dashboard-container">
-        <nav class="sidebar">
-            <div class="logo">
-                <i class="fas fa-hospital-symbol"></i>
-                <h2>Staff Portal</h2>
-            </div>
-            <ul class="nav-links">
-                <li class="active">
-                    <i class="fas fa-home"></i>
-                    <span>Dashboard</span>
-                </li>
-                <li class="logout">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Logout</span>
-                </li>
-            </ul>
-        </nav>
 
-        <main class="main-content">
-            <header>
-                <h1 id="welcome-header">Staff Dashboard</h1>
-            </header>
+<!-- toast -->
+<div id="toast"></div>
 
-            <!-- Search Section -->
-            <div class="search-section">
-                
+<!-- ─────── sidebar ─────── -->
+<nav class="sidebar">
+  <div class="logo"><i class="fas fa-hospital-symbol"></i><h2>Staff</h2></div>
+  <ul class="nav-links">
+    <li data-view="patients" class="active"><i class="fas fa-users"></i><span>Patients</span></li>
+    <li data-view="doctors"><i class="fas fa-user-md"></i><span>Doctors</span></li>
+    <li data-view="appointments"><i class="fas fa-calendar-alt"></i><span>Appointments</span></li>
+    <li class="logout"><i class="fas fa-sign-out-alt"></i><span>Logout</span></li>
+  </ul>
+</nav>
 
-                <div id="patient-search" class="search-content active">
-                    <div class="search-form">
-                        <input type="text" class="search-input" id="patient-search-input" placeholder="Enter patient ID or name">
-                        <button class="search-btn" onclick="searchPatient()">Search</button>
-                    </div>
-                    <div id="patient-results" class="search-results">
-                        <!-- Patient search results will be displayed here -->
-                    </div>
-                </div>
+<!-- ───── main content ───── -->
+<main>
+  <header><h1 id="panel-title">Patients</h1></header>
 
-                <div id="doctor-search" class="search-content">
-                    <div class="search-form">
-                        <input type="text" class="search-input" id="doctor-search-input" placeholder="Enter doctor ID or name">
-                        <button class="search-btn" onclick="searchDoctor()">Search</button>
-                    </div>
-                    <div id="doctor-results" class="search-results">
-                        <!-- Doctor search results will be displayed here -->
-                    </div>
-                </div>
-            </div>
+  <!-- patients controls -->
+  <div id="patient-controls" class="controls">
+    <select id="search-mode" class="search-input" style="width:120px">
+      <option value="id">By ID</option>
+      <option value="name">By Name</option>
+    </select>
+    <input  id="q-patient"   class="search-input" placeholder="Search patient…">
+    <button id="btn-search-p" class="btn btn-primary"><i class="fas fa-search"></i>Search</button>
+    <button id="btn-all-p"    class="btn btn-success"><i class="fas fa-list"></i>All</button>
+    <button id="btn-add-p"    class="btn btn-add"><i class="fas fa-user-plus"></i>Add patient</button>
+    <button id="btn-del-p"    class="btn btn-del" disabled><i class="fas fa-user-minus"></i>Delete</button>
+  </div>
 
-            <!-- Selected Patient Info -->
-            <div id="selected-patient" style="display: none;">
-                <div class="patient-info">
-                    <h3>Selected Patient</h3>
-                    <div class="patient-details">
-                        <div class="detail-item">
-                            <span class="detail-label">Name:</span>
-                            <span id="patient-name"></span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">ID:</span>
-                            <span id="patient-id"></span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Age:</span>
-                            <span id="patient-age"></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Dashboard Grid -->
-            <div class="dashboard-grid">
-                <!-- Search Instructions -->
-                <div class="dashboard-card">
-                    <h3>Instructions</h3>
-                    <p>Search for a patient or doctor using the search bar above. Select a patient to manage their appointments, medical records, and prescriptions.</p>
-                </div>
-            </div>
-        </main>
+  <!-- doctors controls -->
+  <div id="doctor-controls" class="controls" style="display:none">
+    <input id="q-doctor" class="search-input" placeholder="Search doctor…">
+    <button id="btn-search-d" class="btn btn-primary"><i class="fas fa-search"></i>Search</button>
+    <button id="btn-all-d"    class="btn btn-success"><i class="fas fa-list"></i>All</button>
+    <button id="btn-add-d"    class="btn btn-add"><i class="fas fa-user-md"></i>Add doctor</button>
+    <button id="btn-del-d"    class="btn btn-del" disabled><i class="fas fa-user-minus"></i>Delete</button>
+    <button id="btn-add-sch"  class="btn btn-schedule" style="margin-left:auto" disabled><i class="fas fa-clock"></i>Add schedule</button>
+    <button id="btn-edit-sch" class="btn btn-primary" disabled><i class="fas fa-edit"></i>Edit schedule</button>
+    <button id="btn-del-sch"  class="btn btn-del" disabled><i class="fas fa-trash"></i>Delete schedule</button>
+  </div>
+
+  <!-- data table -->
+  <div class="table-wrapper">
+    <table id="main-table">
+      <thead id="tbl-head"></thead>
+      <tbody id="tbl-body"></tbody>
+    </table>
+  </div>
+
+  <!-- schedule sub‑table (visible in doctor view) -->
+  <div id="schedule-wrap" class="table-wrapper hidden">
+      <h3 id="schedule-title" style="padding:12px 18px;margin:0;background:#f9f9f9;border-bottom:1px solid #e0e0e0">Select a doctor to see schedule</h3>
+      <table id="schedule-table">
+        <thead><tr><th>Date</th><th>Start</th><th>End</th><th>Status</th></tr></thead>
+        <tbody></tbody>
+      </table>
+  </div>
+</main>
+
+<!-- create‑patient modal -->
+<div class="modal" id="dlg-patient">
+  <div class="modal-box">
+    <h3>Create Patient</h3>
+    <label>First name<input id="new-fn" class="search-input"></label>
+    <label>Last name <input id="new-ln" class="search-input"></label>
+    <label>DOB       <input id="new-dob" type="date" class="search-input"></label>
+    <div class="modal-actions">
+      <button id="save-patient"  class="btn btn-success">Save</button>
+      <button id="close-patient" class="btn btn-primary" style="background:#888">Cancel</button>
     </div>
-    
-    <script>
-        // Get staff ID from sessionStorage
-        const staffId = sessionStorage.getItem('currentStaffId');
-        let selectedPatientId = null;
-        let selectedDoctorId = null;
-        
-        // Mock data for testing
-        const mockPatients = [
-            {
-                id: '12345678',
-                firstName: 'John',
-                lastName: 'Doe',
-                dateOfBirth: '1985-01-15',
-                sex: 'Male',
-                phone: '(555) 123-4567',
-                address: '123 Main St, Anytown, USA'
-            },
-            {
-                id: '87654321',
-                firstName: 'Jane',
-                lastName: 'Smith',
-                dateOfBirth: '1990-05-22',
-                sex: 'Female',
-                phone: '(555) 987-6543',
-                address: '456 Oak Ave, Somewhere, USA'
-            }
-        ];
+  </div>
+</div>
 
-        const mockDoctors = [
-            { 
-                id: 'D001', 
-                name: 'Dr. Smith', 
-                specialization: 'General Medicine',
-                availability: 'Mon-Fri, 9AM-5PM'
-            },
-            { 
-                id: 'D002', 
-                name: 'Dr. Johnson', 
-                specialization: 'Cardiology',
-                availability: 'Mon-Thu, 10AM-6PM'
-            },
-            { 
-                id: 'D003', 
-                name: 'Dr. Williams', 
-                specialization: 'Pediatrics',
-                availability: 'Tue-Sat, 8AM-4PM'
-            }
-        ];
+<!-- create‑doctor modal -->
+<div class="modal" id="dlg-doctor">
+  <div class="modal-box">
+    <h3>Create Doctor</h3>
+    <label>Name           <input id="doc-name"  class="search-input"></label>
+    <label>Specialization <input id="doc-spec"  class="search-input"></label>
+    <div class="modal-actions">
+      <button id="save-doctor"  class="btn btn-success">Save</button>
+      <button id="close-doctor" class="btn btn-primary" style="background:#888">Cancel</button>
+    </div>
+  </div>
+</div>
 
-        // Store mock data in localStorage if not already present
-        if (!localStorage.getItem('patients')) {
-            localStorage.setItem('patients', JSON.stringify(mockPatients));
-        }
-        
-        // Redirect to login if no staff ID is found
-        if (!staffId) {
-            window.location.href = '../index.html';
-        }
+<!-- add‑schedule modal (used for add & edit) -->
+<div class="modal" id="dlg-schedule">
+  <div class="modal-box">
+    <h3 id="sch-modal-title">Add Schedule</h3>
+    <label>Date  <input id="sch-date"  type="date" class="search-input"></label>
+    <label>Start <input id="sch-start" type="time" class="search-input"></label>
+    <label>End   <input id="sch-end"   type="time" class="search-input"></label>
+    <label>Status
+      <select id="sch-status" class="search-input">
+        <option value="Available">Available</option>
+        <option value="Unavailable">Unavailable</option>
+      </select>
+    </label>
+    <div class="modal-actions">
+      <button id="save-schedule"  class="btn btn-success">Save</button>
+      <button id="close-schedule" class="btn btn-primary" style="background:#888">Cancel</button>
+    </div>
+  </div>
+</div>
 
-        // Add event listeners for navigation
-        document.querySelector('.nav-links li:first-child').addEventListener('click', function() {
-            window.location.href = 'staff-dashboard.html';
-        });
+<!-- universal confirmation modal -->
+<div class="modal" id="confirm-modal">
+  <div class="modal-box">
+    <h3>Confirm</h3>
+    <p id="confirm-message"></p>
+    <div class="modal-actions">
+      <button id="confirm-yes" class="btn btn-del">Yes</button>
+      <button id="confirm-no"  class="btn btn-primary" style="background:#888">Cancel</button>
+    </div>
+  </div>
+</div>
 
-        document.querySelector('.nav-links li.logout').addEventListener('click', function() {
-            if (confirm('Are you sure you want to log out?')) {
-                sessionStorage.removeItem('currentStaffId');
-                window.location.href = '../index.html';
-            }
-        });
+<script>
+/* ---------- helpers ---------- */
+const API = 'http://localhost:3000/api';
+const qs  = s=>document.querySelector(s);
+const qsa = s=>document.querySelectorAll(s);
+function toast(msg){const t=qs('#toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3400);} // 3.4s
+function showConfirm(message, onYes){
+  qs('#confirm-message').textContent = message;
+  qs('#confirm-modal').style.display='flex';
+  qs('#confirm-yes').onclick = ()=>{qs('#confirm-modal').style.display='none';onYes();};
+  qs('#confirm-no').onclick  = ()=>qs('#confirm-modal').style.display='none';
+}
 
-        // Add event listeners for search buttons
-        document.getElementById('patient-search-input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                searchPatient();
-            }
-        });
+/* ---------- view router ---------- */
+let currentView = 'patients';       // default
+const tblHead   = qs('#tbl-head');
+const tblBody   = qs('#tbl-body');
+let selectedId  = null;             // patientId or doctorId
+let selectedDocName = '';
+let scheduleSelectedId = null;      // schedule id
+let scheduleSelectedData = null;
+let editingSchedule = null;
 
-        document.getElementById('doctor-search-input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                searchDoctor();
-            }
-        });
+qsa('.nav-links li[data-view]').forEach(li=>{ li.onclick = ()=>{ switchView(li.dataset.view); }; });
 
-        // Switch between patient and doctor search
-        function switchSearchTab(tab) {
-            document.querySelectorAll('.search-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.search-content').forEach(c => c.classList.remove('active'));
-            
-            if (tab === 'patient') {
-                document.querySelector('.search-tab:first-child').classList.add('active');
-                document.getElementById('patient-search').classList.add('active');
-                document.getElementById('patient-results').classList.add('active');
-            } else {
-                document.querySelector('.search-tab:last-child').classList.add('active');
-                document.getElementById('doctor-search').classList.add('active');
-                document.getElementById('doctor-results').classList.add('active');
-            }
-        }
+function switchView(view){
+  currentView = view; selectedId=null; selectedDocName=''; scheduleSelectedId=null; editingSchedule=null;
+  qsa('.nav-links li[data-view]').forEach(x=>x.classList.remove('active'));
+  qs(`.nav-links li[data-view="${view}"]`).classList.add('active');
+  qs('#panel-title').textContent = view.charAt(0).toUpperCase()+view.slice(1);
 
-        // Search for a patient
-        function searchPatient() {
-            const searchTerm = document.getElementById('patient-search-input').value.toLowerCase();
-            const patients = JSON.parse(localStorage.getItem('patients')) || [];
-            const resultsDiv = document.getElementById('patient-results');
-            
-            // Show results container
-            resultsDiv.classList.add('active');
-            
-            // If search term is empty, show all patients
-            const matchingPatients = searchTerm === '' 
-                ? patients 
-                : patients.filter(patient => 
-                    patient.id.toLowerCase().includes(searchTerm) ||
-                    `${patient.firstName} ${patient.lastName}`.toLowerCase().includes(searchTerm)
-                );
+  qs('#patient-controls').style.display  = view==='patients' ? 'flex':'none';
+  qs('#doctor-controls').style.display   = view==='doctors'  ? 'flex':'none';
+  qs('#schedule-wrap').classList.toggle('hidden', view!=='doctors');
+  qs('#btn-add-sch').disabled = true;
+  qs('#btn-edit-sch').disabled = true;
+  qs('#btn-del-sch').disabled = true;
+  qs('#schedule-title').textContent='Select a doctor to see schedule';
 
-            if (matchingPatients.length === 0) {
-                resultsDiv.innerHTML = '<div class="no-results">No patients found</div>';
-                return;
-            }
+  if(view==='patients')      loadPatients();
+  else if(view==='doctors')  loadDoctors();
+  else { tblHead.innerHTML=''; tblBody.innerHTML=''; }
+}
 
-            resultsDiv.innerHTML = matchingPatients.map(patient => `
-                <div class="patient-info">
-                    <h3>${patient.firstName} ${patient.lastName}</h3>
-                    <div class="patient-details">
-                        <div class="detail-item">
-                            <span class="detail-label">ID:</span>
-                            <span>${patient.id}</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Age:</span>
-                            <span>${calculateAge(patient.dateOfBirth)}</span>
-                        </div>
-                    </div>
-                    <div class="action-buttons">
-                        <button class="view-btn" onclick="selectPatient('${patient.id}')">Select Patient</button>
-                    </div>
-                </div>
-            `).join('');
-        }
+/* ===================================================================
+                          PATIENTS
+=================================================================== */
+function loadPatients(){
+  tblHead.innerHTML = '<tr><th>ID</th><th>Name</th><th>DOB</th><th>Age</th></tr>';
+  fetch(API+'/patients').then(r=>r.json()).then(renderPatients);
+}
+function renderPatients(rows){
+  tblBody.innerHTML='';
+  if(!rows.length){tblBody.innerHTML='<tr class="no-data"><td colspan="4">No records</td></tr>';return;}
+  rows.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${r.patientid}</td>
+                  <td>${r.firstname} ${r.lastname}</td>
+                  <td>${new Date(r.dob).toLocaleDateString()}</td>
+                  <td>${r.age}</td>`;
+    tr.onclick=()=>{
+      qsa('#main-table tbody tr').forEach(x=>x.classList.remove('selected'));
+      tr.classList.add('selected');
+      selectedId=r.patientid; qs('#btn-del-p').disabled=false;
+    };
+    tblBody.appendChild(tr);
+  });
+}
+qs('#btn-all-p').onclick   = loadPatients;
+qs('#btn-search-p').onclick=()=>{
+  const mode=qs('#search-mode').value,q=qs('#q-patient').value.trim();
+  if(!q) return;
+  fetch(`${API}/patients?${mode}=${encodeURIComponent(q)}`).then(r=>r.json()).then(renderPatients);
+};
+/* create patient */
+qs('#btn-add-p').onclick   = ()=>qs('#dlg-patient').style.display='flex';
+qs('#close-patient').onclick = ()=>qs('#dlg-patient').style.display='none';
+qs('#save-patient').onclick  = async()=>{
+  const fn=qs('#new-fn').value.trim(), ln=qs('#new-ln').value.trim(), dob=qs('#new-dob').value;
+  if(!fn||!ln||!dob){alert('All fields required');return;}
+  const res=await fetch(API+'/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({firstName:fn,lastName:ln,dob})});
+  if(res.ok){qs('#dlg-patient').style.display='none';loadPatients();toast('Patient created');}
+  else alert('Error');
+};
+/* delete patient (professional modal) */
+qs('#btn-del-p').onclick = ()=>{ if(!selectedId) return;
+  showConfirm(`Delete patient #${selectedId}?`, ()=>{
+    fetch(`${API}/patients/${selectedId}`,{method:'DELETE'}).then(()=>{loadPatients();toast('Patient deleted');});
+  });
+};
 
-        // Search for a doctor
-        function searchDoctor() {
-            const searchTerm = document.getElementById('doctor-search-input').value.toLowerCase();
-            const resultsDiv = document.getElementById('doctor-results');
-            
-            // Show results container
-            resultsDiv.classList.add('active');
-            
-            // If search term is empty, show all doctors
-            const matchingDoctors = searchTerm === '' 
-                ? mockDoctors 
-                : mockDoctors.filter(doctor => 
-                    doctor.id.toLowerCase().includes(searchTerm) ||
-                    doctor.name.toLowerCase().includes(searchTerm)
-                );
+/* ===================================================================
+                          DOCTORS + SCHEDULES
+=================================================================== */
+function loadDoctors(){
+  tblHead.innerHTML = '<tr><th>ID</th><th>Name</th><th>Specialization</th></tr>';
+  fetch(API+'/doctors').then(r=>r.json()).then(renderDoctors);
+}
+function renderDoctors(rows){
+  tblBody.innerHTML='';
+  if(!rows.length){tblBody.innerHTML='<tr class="no-data"><td colspan="3">No records</td></tr>';return;}
+  rows.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${r.doctorId}</td><td>${r.name}</td><td>${r.specialization||''}</td>`;
+    tr.onclick=()=>{
+      qsa('#main-table tbody tr').forEach(x=>x.classList.remove('selected'));
+      tr.classList.add('selected');
+      selectedId=r.doctorId; selectedDocName=r.name;
+      qs('#btn-del-d').disabled=false; qs('#btn-add-sch').disabled=false;
+      qs('#btn-edit-sch').disabled=true; qs('#btn-del-sch').disabled=true;
+      loadSchedule(r.doctorId);
+      qs('#schedule-title').textContent = `${r.name} — Schedule`;
+    };
+    tblBody.appendChild(tr);
+  });
+  qs('#schedule-table tbody').innerHTML='';
+}
+function loadSchedule(doctorId){
+  fetch(`${API}/doctors/${doctorId}/schedules`).then(r=>r.json()).then(rows=>{
+      const tb=qs('#schedule-table tbody'); tb.innerHTML='';
+      if(!rows.length){tb.innerHTML='<tr class="no-data"><td colspan="4">No schedules</td></tr>';return;}
+      rows.forEach(s=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML=`<td>${new Date(s.date).toLocaleDateString()}</td>
+                      <td>${s.start.substring(0,5)}</td>
+                      <td>${s.end.substring(0,5)}</td>
+                      <td>${s.status}</td>`;
+        tr.onclick=()=>{
+          qsa('#schedule-table tbody tr').forEach(x=>x.classList.remove('selected'));
+          tr.classList.add('selected');
+          scheduleSelectedId = s.scheduleId || s.id;
+          scheduleSelectedData = s;
+          qs('#btn-edit-sch').disabled=false;
+          qs('#btn-del-sch').disabled=false;
+        };
+        tb.appendChild(tr);
+      });
+  });
+}
+/* doctors buttons */
+qs('#btn-all-d').onclick    = loadDoctors;
+qs('#btn-search-d').onclick = ()=>{
+  const q=qs('#q-doctor').value.trim();
+  if(!q) return;
+  fetch(`${API}/doctors`).then(r=>r.json()).then(rows=>renderDoctors(rows.filter(d=>d.name.toLowerCase().includes(q.toLowerCase()))));
+};
+/* create doctor */
+qs('#btn-add-d').onclick = ()=>qs('#dlg-doctor').style.display='flex';
+qs('#close-doctor').onclick = ()=>qs('#dlg-doctor').style.display='none';
+qs('#save-doctor').onclick  = async()=>{
+  const name=qs('#doc-name').value.trim(), spec=qs('#doc-spec').value.trim();
+  if(!name){alert('Name required');return;}
+  const res=await fetch(API+'/doctors',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name, specialization:spec})});
+  if(res.ok){qs('#dlg-doctor').style.display='none';loadDoctors();toast('Doctor created');}
+  else alert('Error');
+};
+/* delete doctor (professional modal) */
+qs('#btn-del-d').onclick = ()=>{ if(!selectedId)return;
+  showConfirm(`Delete doctor #${selectedId}? (Schedules will also be removed)`, ()=>{
+    fetch(`${API}/doctors/${selectedId}`,{method:'DELETE'}).then(()=>{loadDoctors();toast('Doctor deleted');});
+  });
+};
+/* add schedule */
+qs('#btn-add-sch').onclick = ()=>{ if(!selectedId)return; editingSchedule=null; qs('#sch-modal-title').textContent='Add Schedule'; qs('#sch-date').value='';qs('#sch-start').value='';qs('#sch-end').value='';qs('#sch-status').value='Available'; qs('#dlg-schedule').style.display='flex'; };
+qs('#close-schedule').onclick   = ()=>qs('#dlg-schedule').style.display='none';
+qs('#save-schedule').onclick    = async()=>{
+  const date=qs('#sch-date').value,start=qs('#sch-start').value,end=qs('#sch-end').value,status=qs('#sch-status').value;
+  if(!date||!start||!end){alert('All fields required');return;}
+  const payload={date,start,end,status};
+  let res;
+  if(editingSchedule){
+      res = await fetch(`${API}/doctors/${selectedId}/schedules/${editingSchedule}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  } else {
+      res = await fetch(`${API}/doctors/${selectedId}/schedules`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  }
+  if(res.ok){qs('#dlg-schedule').style.display='none';loadSchedule(selectedId);toast(editingSchedule?'Schedule updated':'Schedule added');editingSchedule=null;}
+  else alert('Error');
+};
+/* edit schedule */
+qs('#btn-edit-sch').onclick = ()=>{ if(!scheduleSelectedData)return; editingSchedule=scheduleSelectedId;
+  qs('#sch-modal-title').textContent='Edit Schedule';
+  qs('#sch-date').value=scheduleSelectedData.date;
+  qs('#sch-start').value=scheduleSelectedData.start;
+  qs('#sch-end').value=scheduleSelectedData.end;
+  qs('#sch-status').value=scheduleSelectedData.status;
+  qs('#dlg-schedule').style.display='flex';
+};
+/* delete schedule */
+qs('#btn-del-sch').onclick = ()=>{ if(!scheduleSelectedId)return;
+  showConfirm('Delete selected schedule?', ()=>{
+    fetch(`${API}/doctors/${selectedId}/schedules/${scheduleSelectedId}`,{method:'DELETE'}).then(()=>{loadSchedule(selectedId);toast('Schedule deleted');scheduleSelectedId=null;qs('#btn-edit-sch').disabled=true;qs('#btn-del-sch').disabled=true;});
+  });
+};
 
-            if (matchingDoctors.length === 0) {
-                resultsDiv.innerHTML = '<div class="no-results">No doctors found</div>';
-                return;
-            }
-
-            // Create table for doctor results
-            let tableHTML = `
-                <table class="doctor-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Specialization</th>
-                            <th>Availability</th>
-                            <th class="action-cell">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-
-            matchingDoctors.forEach(doctor => {
-                tableHTML += `
-                    <tr>
-                        <td>${doctor.id}</td>
-                        <td>${doctor.name}</td>
-                        <td>${doctor.specialization}</td>
-                        <td>${doctor.availability}</td>
-                        <td class="action-cell">
-                            <button class="select-doctor-btn" onclick="selectDoctor('${doctor.id}')">Select</button>
-                        </td>
-                    </tr>
-                `;
-            });
-
-            tableHTML += `
-                    </tbody>
-                </table>
-            `;
-
-            resultsDiv.innerHTML = tableHTML;
-        }
-
-        // Select a patient and display their information
-        function selectPatient(patientId) {
-            // Redirect to patient management page with patient ID
-            window.location.href = `patient-management.html?id=${patientId}`;
-        }
-
-        // Select a doctor
-        function selectDoctor(doctorId) {
-            // Store the selected doctor ID in sessionStorage
-            sessionStorage.setItem('currentDoctorId', doctorId);
-            // Redirect to doctor dashboard
-            window.location.href = 'doctor-dashboard.html';
-        }
-
-        // Calculate age from date of birth
-        function calculateAge(dateOfBirth) {
-            const today = new Date();
-            const birthDate = new Date(dateOfBirth);
-            let age = today.getFullYear() - birthDate.getFullYear();
-            const monthDiff = today.getMonth() - birthDate.getMonth();
-            
-            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-                age--;
-            }
-            
-            return age;
-        }
-
-        // Initialize the page
-        document.addEventListener('DOMContentLoaded', function() {
-            // Show all patients by default
-            searchPatient();
-            
-            // Show all doctors by default
-            searchDoctor();
-        });
-    </script>
+/* ================================================================== */
+qs('.logout').onclick = ()=>{ sessionStorage.clear(); location.href = '../index.html'; };
+switchView('patients');
+</script>
 </body>
-</html> 
+</html>

@@ -1,3 +1,82 @@
+body{outline:6px dashed hotpink !important;}
+
+/* ===== right‑hand action bar ===== */
+.action-bar{
+    width:70px;
+    background:#2c3e50;
+    color:#fff;
+    position:fixed;
+    top:0;
+    right:0;
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+    z-index:100;
+}
+.action-bar ul{list-style:none;margin:0;padding:80px 0 0;display:flex;flex-direction:column;gap:20px;align-items:center;}
+.action-bar li{
+    font-size:22px;
+    width:50px; height:50px;
+    display:flex;align-items:center;justify-content:center;
+    background:#2196F3;
+    border-radius:50%;
+    cursor:pointer;
+    transition:background .25s;
+}
+.action-bar li:hover{background:#1c7dd8;}
+
+/* table row selected highlight */
+#patients-table tbody tr.selected{background:#d6ebff;}
+
+/* input & button look‑and‑feel shared */
+.input-basic{width:100%;padding:6px 10px;border:1px solid #ccc;border-radius:4px;}
+.btn-primary{padding:10px 20px;background:#2196F3;color:#fff;border:none;border-radius:5px;cursor:pointer;}
+.btn-success{padding:10px 20px;background:#4CAF50;color:#fff;border:none;border-radius:5px;cursor:pointer;}
+.btn-secondary{padding:10px 20px;background:#888;color:#fff;border:none;border-radius:5px;cursor:pointer;}
+.btn-primary:hover{background:#1c7dd8;}
+.btn-success:hover{background:#3d8c44;}
+.btn-secondary:hover{background:#666;}
+
+/* modal */
+.modal   {display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;}
+.modal-box{background:#fff;border-radius:8px;width:340px;margin:120px auto;padding:20px;position:relative;}
+.no-data{text-align:center;color:#777;padding:15px;}
+
+/* ===== table cosmetics =================================== */
+.dashboard-card table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid #e0e0e0;       /* subtle outer border   */
+    border-radius: 8px;              /* rounded corners       */
+    overflow: hidden;                /* keep radius on cells  */
+    background: #fff;
+  }
+  
+  /* header row */
+  .dashboard-card thead tr {
+    background: #2196F3;             /* clinic blue           */
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+  }
+  
+  /* cells */
+  .dashboard-card th,
+  .dashboard-card td {
+    padding: 12px 16px;
+    font-size: 14px;
+    text-align: left;
+  }
+  
+  /* zebra‑striping & hover */
+  .dashboard-card tbody tr:nth-child(even) { background: #f9fbfd; }
+  .dashboard-card tbody tr:hover           { background: #eef6ff; }
+  
+  /* thin divider between rows */
+  .dashboard-card tbody td {
+    border-bottom: 1px solid #eee;
+  }
+  
 * {
     margin: 0;
     padding: 0;
@@ -34,6 +113,17 @@ body {
     flex-direction: column;
     z-index: 100;
 }
+
+.sidebar .nav-links{
+    display:flex;
+    flex-direction:column;
+    height:100%;
+  }
+.sidebar .nav-links {display:flex;flex-direction:column;height:100%;}
+.sidebar .nav-links li.logout{margin-top:auto;}
+
+#patients-table th,#patients-table td{padding:10px;border-bottom:1px solid #eee;text-align:left;}
+#patients-table tbody tr:hover{background:#fafafa;}
 
 .sidebar .logo {
     width: 100%;
@@ -340,3 +430,31 @@ header h1 {
     color: #2196F3;
     text-decoration: underline;
 } 
+
+/* ───── pretty tables inside cards ───── */
+.dashboard-card table {
+    width: 100%;
+    border-collapse: collapse;     /* no double borders */
+    font-size: 14px;
+}
+
+.dashboard-card th,
+.dashboard-card td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.dashboard-card thead th {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #333;
+}
+
+/* ===== pretty Patients table ===== */
+#patients-table                              { width:100%; border-collapse:collapse; border:1px solid #e0e0e0; border-radius:8px; overflow:hidden; background:#fff; }
+#patients-table thead tr                     { background:#2196F3;  color:#fff; text-transform:uppercase; letter-spacing:.04em; }
+#patients-table th, #patients-table td       { padding:12px 16px; font-size:14px; text-align:left; }
+#patients-table tbody tr:nth-child(even)     { background:#f9fbfd; }
+#patients-table tbody tr:hover               { background:#eef6ff; cursor:pointer; }
+#patients-table tbody td                     { border-bottom:1px solid #eee; }

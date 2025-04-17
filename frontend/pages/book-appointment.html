@@ -110,12 +110,6 @@
                     <div class="form-group">
                         <label for="doctor">Select Doctor</label>
                         <select id="doctor" required>
-                            <option value="">Select a doctor</option>
-                            <option value="no-preference">No Preference</option>
-                            <option value="dr-smith">Dr. Smith - General Medicine</option>
-                            <option value="dr-johnson">Dr. Johnson - Cardiology</option>
-                            <option value="dr-williams">Dr. Williams - Pediatrics</option>
-                            <option value="dr-brown">Dr. Brown - Orthopedics</option>
                         </select>
                     </div>
 
@@ -153,99 +147,57 @@
     </div>
 
     <script>
-        // Add this at the beginning of your script section
-        // Get current patient ID from sessionStorage
-        const currentPatientId = sessionStorage.getItem('currentPatientId');
-        
-        // Redirect to login if no patient ID is found
-        if (!currentPatientId) {
-            window.location.href = '../index.html';
-        }
-        
-        // Get patient data from localStorage
-        function getCurrentPatient() {
-            const patients = JSON.parse(localStorage.getItem('patients')) || [];
-            return patients.find(p => p.id === currentPatientId) || null;
-        }
-        
-        // Load patient data
-        const currentPatient = getCurrentPatient();
-        
-        // Add event listener to the form submission
-        document.getElementById('appointment-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Get form values
-            const appointmentType = document.getElementById('appointment-type').value;
-            const doctor = document.getElementById('doctor').value;
-            const appointmentDate = document.getElementById('appointment-date').value;
-            const appointmentTime = document.getElementById('appointment-time').value;
-            const reason = document.getElementById('reason').value;
-            
-            // Format doctor name for display
-            let doctorName = document.getElementById('doctor').options[document.getElementById('doctor').selectedIndex].text;
-            
-            // If no preference was selected, update the doctor name
-            if (doctor === 'no-preference') {
-                doctorName = "Any Available Doctor";
-            }
-            
-            // Format date for display
-            const formattedDate = new Date(appointmentDate).toLocaleDateString('en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-            
-            // Format time for display
-            const timeValue = document.getElementById('appointment-time').options[document.getElementById('appointment-time').selectedIndex].text;
-            
-            // Create appointment object
-            const appointment = {
-                type: appointmentType,
-                doctor: doctor,
-                doctorName: doctorName,
-                date: appointmentDate,
-                formattedDate: formattedDate,
-                time: appointmentTime,
-                formattedTime: timeValue,
-                reason: reason,
-                status: 'scheduled'
-            };
-            
-            // Get existing appointments or initialize empty array
-            let appointments = JSON.parse(localStorage.getItem('appointments')) || [];
-            
-            // Add new appointment
-            appointments.push(appointment);
-            
-            // Save to localStorage
-            localStorage.setItem('appointments', JSON.stringify(appointments));
-            
-            alert('Appointment booked successfully!');
-            window.location.href = 'patient-dashboard.html';
-        });
-        
-        // Set minimum date to today
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('appointment-date').min = today;
+        /* ---------- live API ---------- */
+const API = 'http://localhost:3000/api';
 
-        // Sidebar navigation
-        document.querySelector('.nav-links li:nth-child(1)').addEventListener('click', function() {
-            window.location.href = 'patient-dashboard.html';
-        });
+/* In a real app you’d pull these from sessionStorage after login */
+const patientID = 1;   // demo user
+const staffID   = 1;   // receptionist
 
-        document.querySelector('.nav-links li:nth-child(2)').addEventListener('click', function() {
-            window.location.href = 'book-appointment.html';
-        });
+/* 1) Populate doctor list on page load */
+fetch(`${API}/doctors`)
+  .then(r => r.json())
+  .then(doctors => {
+    const sel = document.getElementById('doctor');
+    doctors.forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d.doctorid;                 // numeric id
+      opt.text  = `${d.name} — ${d.specialization}`;
+      sel.appendChild(opt);
+    });
+  })
+  .catch(err => alert('Cannot load doctors: ' + err));
 
+/* 2) Handle form submit -> POST /api/appointments */
+document.getElementById('appointment-form')
+  .addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-        document.querySelector('.nav-links li.logout').addEventListener('click', function() {
-            if (confirm('Are you sure you want to log out?')) {
-                window.location.href = '../index.html';
-            }
-        });
+    const body = {
+      patientID,
+      doctorID : Number(document.getElementById('doctor').value),
+      date     : document.getElementById('appointment-date').value,
+      time     : document.getElementById('appointment-time').value,
+      staffID
+    };
+
+    if (!body.doctorID) { alert('Select a doctor'); return; }
+
+    try {
+      const res  = await fetch(`${API}/appointments`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(body)
+      });
+      if(!res.ok) throw new Error('DB error');
+      const data = await res.json();
+
+      alert('Booked!  Your appointment ID is '+ data.appointmentID);
+      window.location.href='patient-dashboard.html';
+    } catch(err){
+      alert('Booking failed: ' + err.message);
+    }
+});
     </script>
 </body>
 </html> 
