@@ -1,36 +1,25 @@
-// app.js
-// ─────────────────────────────────────────────────────────────────────
 require('dotenv').config();
 const express = require('express');
 const cors    = require('cors');
-const morgan  = require('morgan');      // request/response logger
+const morgan  = require('morgan');
+const app     = express();
 
-const app = express();
-
-/* ───── middleware ───── */
+// Middleware
 app.use(cors());
 app.use(express.json());
-
-// pretty log:  GET /patients 200 436 - 5.22 ms
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms'));
 
-// extra body echo for debugging write methods
-app.use((req, res, next) => {
-  if (['POST', 'PUT', 'PATCH'].includes(req.method)) {
-    console.log('  ↳ body:', JSON.stringify(req.body));
-  }
-  next();
+// Routes – mounting routers for each module
+app.use('/api/patients',      require('./routes/patients'));
+app.use('/api/doctors',       require('./routes/doctors'));
+app.use('/api/appointments',  require('./routes/appointments'));
+app.use('/api/schedules',     require('./routes/schedules'));
+app.use('/api/prescriptions', require('./routes/prescriptions'));
+app.use('/api/medicalrecords', require('./routes/medicalrecords'));
+app.use('/api/billing',       require('./routes/billing'));
+
+// Start server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`API server running at http://localhost:${PORT}`);
 });
-
-/* ───── routes ───── */
-app.use('/api/doctors',      require('./routes/doctors'));
-app.use('/api/appointments', require('./routes/appointments'));
-app.use('/api/patients',     require('./routes/patients'));
-app.use('/api/schedules',  require('./routes/schedules'));
-
-
-/* ───── start server ───── */
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () =>
-  console.log(`API server running at http://localhost:${PORT}`)
-);

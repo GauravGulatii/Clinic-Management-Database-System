@@ -1,93 +1,47 @@
-// routes/doctors.js
-// ─────────────────────────────────────────────────────────────────────
 const express = require('express');
-const router  = express.Router();
-const db      = require('../db');           // ← your pg Pool
+const router = express.Router();
+const pool = require('../db');
 
-/* ───────────────  doctors  ─────────────── */
-
-// GET /api/doctors  →  all doctors
-router.get('/', async (_, res) => {
+/** GET /api/doctors - list all doctors */
+router.get('/', async (req, res) => {
   try {
-    const { rows } = await db.query(
-      `SELECT doctorid      AS "doctorId",
-              name,
-              specialization
-       FROM   Doctor
-       ORDER  BY name`
-    );
-    res.json(rows);
+    const result = await pool.query('SELECT * FROM doctor ORDER BY doctorid');
+    res.json(result.rows);
   } catch (err) {
-    console.error(err); res.status(500).json({ error:'DB error' });
+    console.error(err);
+    res.status(500).json({ error: err.message });
   }
 });
 
-// POST /api/doctors  →  create doctor
+/** POST /api/doctors - create a new doctor { name, specialization } */
 router.post('/', async (req, res) => {
-  const { name, specialization } = req.body;
-  if (!name) return res.status(400).json({ error:'Name required' });
   try {
-    const { rows:[doctor] } = await db.query(
-      `INSERT INTO Doctor (name,specialization)
-       VALUES ($1,$2) RETURNING doctorid AS "doctorId",name,specialization`,
-       [name, specialization || null]
+    const { name, specialization } = req.body;
+    const insertRes = await pool.query(
+      `INSERT INTO doctor (name, specialization) 
+       VALUES ($1, $2) RETURNING *`,
+      [name, specialization || null]  // specialization may be null
     );
-    res.status(201).json(doctor);
+    res.status(201).json(insertRes.rows[0]);
   } catch (err) {
-    console.error(err); res.status(500).json({ error:'DB error' });
+    console.error(err);
+    res.status(500).json({ error: err.message });
   }
 });
 
-// DELETE /api/doctors/:id  → remove doctor
+/** DELETE /api/doctors/:id - delete a doctor (cascades to appointments and schedules via FK) */
 router.delete('/:id', async (req, res) => {
+  const doctorId = req.params.id;
   try {
-    await db.query('DELETE FROM Doctor WHERE doctorid = $1', [req.params.id]);
-    res.sendStatus(204);
+    const result = await pool.query(`DELETE FROM doctor WHERE doctorid = $1`, [doctorId]);
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Doctor not found' });
+    }
+    // Deleting a doctor will automatically cascade delete their appointments and schedules (per FK constraints)
+    res.json({ message: 'Doctor deleted successfully' });
   } catch (err) {
-    console.error(err); res.status(500).json({ error:'DB error' });
-  }
-});
-
-/* ──────────────  schedules  ────────────── */
-
-// GET /api/doctors/:id/schedules  → schedules for a doctor
-router.get('/:id/schedules', async (req, res) => {
-  try {
-    const { rows } = await db.query(
-      `SELECT scheduleid     AS "scheduleId",
-              scheduledate   AS "date",
-              starttime      AS "start",
-              endtime        AS "end",
-              status
-       FROM   DoctorSchedule
-       WHERE  doctorid = $1
-       ORDER  BY scheduledate,starttime`,
-       [req.params.id]
-    );
-    res.json(rows);
-  } catch (err) {
-    console.error(err); res.status(500).json({ error:'DB error' });
-  }
-});
-
-// POST /api/doctors/:id/schedules  → add schedule row
-router.post('/:id/schedules', async (req, res) => {
-  const { date, start, end, status='Available' } = req.body;
-  if (!date || !start || !end)
-    return res.status(400).json({ error:'date, start, end required' });
-  try {
-    const { rows:[row] } = await db.query(
-      `INSERT INTO DoctorSchedule
-         (doctorid,scheduledate,starttime,endtime,status)
-       VALUES ($1,$2,$3,$4,$5)
-       RETURNING scheduleid AS "scheduleId",doctorid AS "doctorId",
-                 scheduledate AS "date",starttime AS "start",
-                 endtime AS "end",status`,
-      [req.params.id,date,start,end,status]
-    );
-    res.status(201).json(row);
-  } catch (err) {
-    console.error(err); res.status(500).json({ error:'DB error' });
+    console.error(err);
+    res.status(500).json({ error: err.message });
   }
 });
 

@@ -1,96 +1,55 @@
 const express = require('express');
-const router  = express.Router();
-const db      = require('../db');
+const router = express.Router();
+const pool = require('../db');
 
-/* ------------------------------------------------------------------
-   GET /api/doctors/:doctorID/schedules     (preferred)
-   GET /api/schedules?doctorID=123          (legacy support)
------------------------------------------------------------------- */
-router.get(['/', '/doctors/:doctorID/schedules'], async (req, res) => {
+/** GET /api/schedules - list all doctor schedules with doctor info */
+router.get('/', async (req, res) => {
   try {
-    const doctorID = req.params.doctorID || req.query.doctorID;
-    const { rows } = await db.query(
-      `SELECT scheduleID, doctorID, scheduleDate, startTime, endTime, status
-         FROM DoctorSchedule
-        ${doctorID ? 'WHERE doctorID = $1' : ''}
-        ORDER BY scheduleDate, startTime`,
-      doctorID ? [doctorID] : []
+    const result = await pool.query(
+      `SELECT s.scheduleid, s.doctorid, s.scheduledate, s.starttime, s.endtime, s.status,
+              d.name AS doctorname
+         FROM doctorschedule s
+         JOIN doctor d ON d.doctorid = s.doctorid
+         ORDER BY s.scheduledate, s.starttime`
     );
-    res.json(rows);
+    res.json(result.rows);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'DB error' });
+    res.status(500).json({ error: err.message });
   }
 });
 
-/* ------------------------------------------------------------------
-   POST /api/doctors/:doctorID/schedules    (preferred)
-   POST /api/schedules                      (legacy)
------------------------------------------------------------------- */
-router.post(['/', '/doctors/:doctorID/schedules'], async (req, res) => {
+/** POST /api/schedules 
+ * Create a new schedule entry. Expects { doctorid, scheduledate, starttime, endtime, [status] }.
+ * scheduleid is auto-generated. */
+router.post('/', async (req, res) => {
   try {
-    const doctorID = req.params.doctorID || req.body.doctorID;
-    const { scheduleDate, startTime, endTime, status = 'Available' } = req.body;
+    const { doctorid, scheduledate, starttime, endtime, status } = req.body;
+    const insertRes = await pool.query(
+      `INSERT INTO doctorschedule (doctorid, scheduledate, starttime, endtime, status)
+       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [doctorid, scheduledate, starttime, endtime, status || 'Available']
+    );
+    res.status(201).json(insertRes.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
-    if (!doctorID || !scheduleDate || !startTime || !endTime) {
-      return res.status(400).json({ error: 'Missing fields' });
+/** DELETE /api/schedules/:id - delete a schedule by ID */
+router.delete('/:id', async (req, res) => {
+  const scheduleId = req.params.id;
+  try {
+    const result = await pool.query(`DELETE FROM doctorschedule WHERE scheduleid = $1`, [scheduleId]);
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Schedule not found' });
     }
-
-    const { rows: [row] } = await db.query(
-      `INSERT INTO DoctorSchedule
-         (doctorID, scheduleDate, startTime, endTime, status)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING *`,
-      [doctorID, scheduleDate, startTime, endTime, status]
-    );
-    res.status(201).json(row);
+    // Appointments that referenced this schedule will have scheduleid set to NULL (per FK ON DELETE SET NULL)
+    res.json({ message: 'Schedule deleted successfully' });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'DB error' });
-  }
-});
-
-/* ------------------------------------------------------------------
-   PUT  /api/schedules/:scheduleID          – update a slot
------------------------------------------------------------------- */
-router.put('/:scheduleID', async (req, res) => {
-  try {
-    const { scheduleID } = req.params;
-    const { scheduleDate, startTime, endTime, status } = req.body;
-
-    const { rows: [row] } = await db.query(
-      `UPDATE DoctorSchedule
-          SET scheduleDate = COALESCE($2, scheduleDate),
-              startTime    = COALESCE($3, startTime),
-              endTime      = COALESCE($4, endTime),
-              status       = COALESCE($5, status)
-        WHERE scheduleID = $1
-        RETURNING *`,
-      [scheduleID, scheduleDate, startTime, endTime, status]
-    );
-
-    if (!row) return res.status(404).json({ error: 'Not found' });
-    res.json(row);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'DB error' });
-  }
-});
-
-/* ------------------------------------------------------------------
-   DELETE /api/schedules/:scheduleID        
------------------------------------------------------------------- */
-router.delete('/:scheduleID', async (req, res) => {
-  try {
-    const { scheduleID } = req.params;
-    const { rowCount } = await db.query(
-      `DELETE FROM DoctorSchedule WHERE scheduleID = $1`, [scheduleID]
-    );
-    if (!rowCount) return res.status(404).json({ error: 'Not found' });
-    res.status(204).end();
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'DB error' });
+    res.status(500).json({ error: err.message });
   }
 });
 

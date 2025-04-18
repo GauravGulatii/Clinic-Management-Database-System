@@ -11,8 +11,9 @@
     "prettier": "^3.5.3"
   },
   "scripts": {
-    "start": "node server.js",
+    "start": "node backend/app.js",
     "dev": "nodemon server.js",
+    "proxy": "http://localhost:5000",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write ."
