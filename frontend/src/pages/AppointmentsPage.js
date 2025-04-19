@@ -1,324 +1,440 @@
-// frontend/src/pages/AppointmentsPage.js
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ErrorModal from '../components/ErrorModal';
 
-const AppointmentsPage = () => {
+export default function AppointmentsPage() {
+  const nav = useNavigate();
+
+  // — state —
   const [appointments, setAppointments] = useState([]);
   const [patients, setPatients] = useState([]);
   const [doctors, setDoctors] = useState([]);
   const [timeSlots, setTimeSlots] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // add/edit modal
   const [showModal, setShowModal] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   // form fields
-  const [patientId, setPatientId] = useState('');
+  const [patientId, setPatientId] = useState(null);
   const [doctorId, setDoctorId] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [scheduleId, setScheduleId] = useState(null);
+
+  // selection for row actions
+  const [selPatientId, setSelPatientId] = useState(null);
+  const [patientAppts, setPatientAppts] = useState([]);
+  const [selAppt, setSelAppt] = useState(null);
+
+  // feedback & errors
   const [message, setMessage] = useState('');
-
-  // error‐modal state
   const [showError, setShowError] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
 
-  // fetch all appointments
-  const fetchAppointments = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch('/api/appointments');
-      const data = await res.json();
-      setAppointments(data);
-    } catch (err) {
-      console.error('Failed to fetch appointments', err);
-    } finally {
-      setLoading(false);
-    }
+  // fetch all three lists
+  const fetchAll = () => {
+    setLoading(true);
+    Promise.all([
+      fetch('/api/appointments').then((r) => r.json()),
+      fetch('/api/appointments/patients').then((r) => r.json()),
+      fetch('/api/appointments/doctors').then((r) => r.json()),
+    ])
+      .then(([appts, pts, drs]) => {
+        setAppointments(appts);
+        setPatients(pts);
+        setDoctors(drs);
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
   };
 
-  // fetch patients list
-  const fetchPatients = async () => {
-    try {
-      const res = await fetch('/api/appointments/patients');
-      setPatients(await res.json());
-    } catch (err) {
-      console.error('Failed to fetch patients', err);
-    }
-  };
+  useEffect(fetchAll, []);
 
-  // fetch doctors list
-  const fetchDoctors = async () => {
-    try {
-      const res = await fetch('/api/appointments/doctors');
-      setDoctors(await res.json());
-    } catch (err) {
-      console.error('Failed to fetch doctors', err);
-    }
-  };
-
-  // fetch availability when doctor or date changes
-  const fetchAvailability = async () => {
-    if (!doctorId || !date) return;
-    try {
-      const res = await fetch(
-        `/api/appointments/availability?doctorid=${doctorId}&date=${date}`
-      );
-      const schedules = await res.json();
-      generateTimeSlots(schedules);
-    } catch (err) {
-      console.error('Failed to fetch availability', err);
-    }
-  };
-
-  // build 1‑hour slots between 8 and 17
-  const generateTimeSlots = (schedules) => {
-    const slotsMap = new Map();
-
-    schedules.forEach(({ scheduleid, starttime, endtime }) => {
-      const startH = parseInt(starttime.split(':')[0], 10);
-      const endH = parseInt(endtime.split(':')[0], 10);
-      const clinicStart = 8;
-      const clinicEnd = 17;
-      const from = Math.max(startH, clinicStart);
-      const to = Math.min(endH, clinicEnd);
-
-      for (let h = from; h < to; h++) {
-        const label = `${h}:00 – ${h + 1}:00`;
-        const value = `${h.toString().padStart(2, '0')}:00`;
-        slotsMap.set(`${value}|${scheduleid}`, { label, value, scheduleid });
-      }
-    });
-
-    setTimeSlots(Array.from(slotsMap.values()));
-  };
-
-  // On mount: load patients, doctors, appointments
+  // reload time‑slots when doctor or date changes
   useEffect(() => {
-    fetchPatients();
-    fetchDoctors();
-    fetchAppointments();
-  }, []);
-
-  // When doctorId or date updates: reload available slots
-  useEffect(() => {
-    fetchAvailability();
+    if (!doctorId || !date) {
+      setTimeSlots([]);
+      return;
+    }
+    fetch(`/api/appointments/availability?doctorid=${doctorId}&date=${date}`)
+      .then((r) => r.json())
+      .then((schedules) => {
+        const m = new Map();
+        schedules.forEach(({ scheduleid, starttime, endtime }) => {
+          const sh = +starttime.split(':')[0];
+          const eh = +endtime.split(':')[0];
+          for (let h = Math.max(8, sh); h < Math.min(17, eh); h++) {
+            const val = `${h.toString().padStart(2, '0')}:00`;
+            m.set(`${val}|${scheduleid}`, {
+              value: val,
+              scheduleid,
+              label: `${h}:00 – ${h + 1}:00`,
+            });
+          }
+        });
+        setTimeSlots(Array.from(m.values()));
+      })
+      .catch(console.error);
   }, [doctorId, date]);
 
-  // handleAddAppointment with conflict check
-  const handleAddAppointment = async (e) => {
+  // filter appointments when selPatientId or appointments change
+  useEffect(() => {
+    if (selPatientId == null) {
+      setPatientAppts([]);
+    } else {
+      setPatientAppts(appointments.filter((a) => a.patientid === selPatientId));
+    }
+  }, [selPatientId, appointments]);
+
+  // open add modal
+  const openAdd = () => {
+    setIsEditing(false);
+    setPatientId(null);
+    setDoctorId('');
+    setDate('');
+    setTime('');
+    setScheduleId(null);
+    setShowModal(true);
+  };
+
+  // open edit modal
+  const openEdit = () => {
+    if (!selAppt) return;
+    setIsEditing(true);
+    setPatientId(selAppt.patientid);
+    setDoctorId(selAppt.doctorid);
+    setDate(selAppt.appointmentdate.slice(0, 10));
+    setTime(selAppt.appointmenttime);
+    setScheduleId(selAppt.scheduleid);
+    setShowModal(true);
+  };
+
+  // add or update
+  const handleSave = (e) => {
     e.preventDefault();
-
-    const stored = sessionStorage.getItem('currentStaffId');
-    const staffId = stored ? parseInt(stored, 10) : 1;
-
-    try {
-      const res = await fetch('/api/appointments', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          patientid: patientId,
-          appointmentdate: date,
-          appointmenttime: time,
-          doctorid: doctorId,
-          staffid: staffId,
-          scheduleid: scheduleId,
-        }),
+    const staffid = parseInt(sessionStorage.getItem('currentStaffId') || '1', 10);
+    const payload = {
+      patientid: patientId,
+      appointmentdate: date,
+      appointmenttime: time,
+      doctorid: doctorId,
+      staffid,
+      scheduleid: scheduleId,
+    };
+    const url = isEditing
+      ? `/api/appointments/${selAppt.patientid}/${selAppt.appointmentid}`
+      : '/api/appointments';
+    fetch(url, {
+      method: isEditing ? 'PUT' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+      .then(async (res) => {
+        if (res.status === 409) {
+          const { error } = await res.json();
+          setErrorMsg(error);
+          setShowError(true);
+          throw new Error('Conflict');
+        }
+        if (!res.ok) throw new Error('Save failed');
+      })
+      .then(() => {
+        fetchAll();
+        setMessage(isEditing ? 'Appointment updated' : 'Appointment added');
+      })
+      .catch((err) => {
+        if (err.message !== 'Conflict') {
+          console.error(err);
+          setMessage('Error saving appointment');
+        }
+      })
+      .finally(() => {
+        setShowModal(false);
+        setTimeout(() => setMessage(''), 3000);
       });
-
-      if (res.status === 409) {
-        const { error } = await res.json();
-        setErrorMessage(error);
-        setShowError(true);
-        return;
-      }
-
-      if (!res.ok) throw new Error('Failed to add appointment');
-
-      await fetchAppointments();
-      setMessage('Appointment added successfully.');
-    } catch (err) {
-      console.error(err);
-      setMessage('Error adding appointment.');
-    } finally {
-      setShowModal(false);
-      setPatientId('');
-      setDoctorId('');
-      setDate('');
-      setTime('');
-      setScheduleId(null);
-      setTimeout(() => setMessage(''), 3000);
-    }
   };
 
-  // delete handler
-  const handleDeleteAppointment = async (patId, appId) => {
-    if (!window.confirm('Delete this appointment?')) return;
-    try {
-      const res = await fetch(`/api/appointments/${patId}/${appId}`, {
-        method: 'DELETE',
-      });
-      if (!res.ok) throw new Error('Delete failed');
-      await fetchAppointments();
-      setMessage('Appointment deleted.');
-    } catch (err) {
-      console.error(err);
-      setMessage('Error deleting appointment.');
-    } finally {
-      setTimeout(() => setMessage(''), 3000);
-    }
+  // delete appointment
+  const handleDelete = () => {
+    if (!selAppt || !window.confirm('Delete this appointment?')) return;
+    fetch(
+      `/api/appointments/${selAppt.patientid}/${selAppt.appointmentid}`,
+      { method: 'DELETE' }
+    )
+      .then((res) => {
+        if (!res.ok) throw new Error('Delete failed');
+        return fetchAll();
+      })
+      .then(() => {
+        setMessage('Appointment deleted');
+        setSelAppt(null);
+      })
+      .catch((err) => {
+        console.error(err);
+        setMessage('Error deleting appointment');
+      })
+      .finally(() => setTimeout(() => setMessage(''), 3000));
   };
+
+  const fmt = (iso) => new Date(iso).toLocaleDateString('en-CA');
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-4">Appointments</h1>
-      <button
-        className="mb-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        onClick={() => setShowModal(true)}
-      >
-        + Add Appointment
-      </button>
+    <div className="space-y-4">
+      <h1 className="text-2xl font-bold">Appointments</h1>
 
       {message && (
-        <div className="mb-4 p-3 text-center bg-green-100 text-green-800 rounded">
-          {message}
-        </div>
+        <div className="p-2 bg-green-100 text-green-800 rounded">{message}</div>
       )}
-
-      {/* Error Modal */}
       {showError && (
-        <ErrorModal
-          message={errorMessage}
-          onClose={() => setShowError(false)}
-        />
+        <ErrorModal message={errorMsg} onClose={() => setShowError(false)} />
       )}
 
-      <div className="bg-white rounded shadow p-4 overflow-x-auto">
-        {loading ? (
-          <p>Loading appointments...</p>
-        ) : appointments.length === 0 ? (
-          <p className="italic text-gray-600">No appointments found.</p>
-        ) : (
-          <table className="w-full table-auto">
-            <thead className="bg-blue-500 text-white">
-              <tr>
-                <th className="px-4 py-2 text-left">Patient</th>
-                <th className="px-4 py-2 text-left">Doctor</th>
-                <th className="px-4 py-2 text-left">Date</th>
-                <th className="px-4 py-2 text-left">Time</th>
-                <th className="px-4 py-2">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {appointments.map((app) => (
-                <tr
-                  key={`${app.patientid}-${app.appointmentid}`}
-                  className="border-b hover:bg-gray-50"
-                >
-                  <td className="px-4 py-2">{app.patientname}</td>
-                  <td className="px-4 py-2">{app.doctorname}</td>
-                  <td className="px-4 py-2">{app.appointmentdate}</td>
-                  <td className="px-4 py-2">{app.appointmenttime}</td>
-                  <td className="px-4 py-2 text-center">
-                    <button
-                      onClick={() =>
-                        handleDeleteAppointment(
-                          app.patientid,
-                          app.appointmentid
-                        )
-                      }
-                      className="text-red-600 hover:underline"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+      <div className="flex space-x-2">
+        <button
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          onClick={openAdd}
+        >
+          + Add Appointment
+        </button>
       </div>
 
+      <div className="flex space-x-2 items-center">
+        {/* Patient selector */}
+        <select
+          value={selPatientId ?? ''}
+          onChange={(e) => {
+            const id = e.target.value ? parseInt(e.target.value, 10) : null;
+            setSelPatientId(id);
+            setSelAppt(null); // clear selected appointment only when patient changes
+          }}
+          className="border px-2 py-1 rounded"
+        >
+          <option value="">— Select patient —</option>
+          {patients.map((p) => (
+            <option key={p.patientid} value={p.patientid}>
+              {p.name}
+            </option>
+          ))}
+        </select>
+
+        {/* Appointment selector */}
+        <select
+          value={selAppt?.appointmentid ?? ''}
+          onChange={(e) => {
+            const id = parseInt(e.target.value, 10);
+            setSelAppt(
+              patientAppts.find((a) => a.appointmentid === id) || null
+            );
+          }}
+          disabled={!selPatientId}
+          className="border px-2 py-1 rounded"
+        >
+          <option value="">— Select appointment —</option>
+          {patientAppts.map((a) => (
+            <option key={a.appointmentid} value={a.appointmentid}>
+              {fmt(a.appointmentdate)} {a.appointmenttime}
+            </option>
+          ))}
+        </select>
+
+        <button
+          onClick={openEdit}
+          disabled={!selAppt}
+          className="px-3 py-1 bg-yellow-400 rounded text-white hover:bg-yellow-500 disabled:opacity-50"
+        >
+          Edit
+        </button>
+        <button
+          onClick={() =>
+            nav(
+              `/billing?patientid=${selAppt?.patientid}&appointmentid=${selAppt?.appointmentid}`
+            )
+          }
+          disabled={!selAppt}
+          className="px-3 py-1 bg-blue-500 rounded text-white hover:bg-blue-600 disabled:opacity-50"
+        >
+          Billing
+        </button>
+        <button
+          onClick={() =>
+            nav(
+              `/prescriptions?patientid=${selAppt?.patientid}&appointmentid=${selAppt?.appointmentid}`
+            )
+          }
+          disabled={!selAppt}
+          className="px-3 py-1 bg-green-500 rounded text-white hover:bg-green-600 disabled:opacity-50"
+        >
+          Prescription
+        </button>
+        <button
+          onClick={() =>
+            nav(
+              `/medicalrecords?patientid=${selAppt?.patientid}&appointmentid=${selAppt?.appointmentid}`
+            )
+          }
+          disabled={!selAppt}
+          className="px-3 py-1 bg-purple-500 rounded text-white hover:bg-purple-600 disabled:opacity-50"
+        >
+          Medical Record
+        </button>
+        <button
+          onClick={handleDelete}
+          disabled={!selAppt}
+          className="px-3 py-1 bg-red-600 rounded text-white hover:bg-red-700 disabled:opacity-50"
+        >
+          Delete
+        </button>
+      </div>
+
+      <div className="overflow-auto shadow rounded">
+        <table className="w-full table-auto">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="px-4 py-2 text-left">Patient</th>
+              <th className="px-4 py-2 text-left">Doctor</th>
+              <th className="px-4 py-2 text-left">Date</th>
+              <th className="px-4 py-2 text-left">Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr>
+                <td colSpan={4} className="p-4 text-center">
+                  Loading…
+                </td>
+              </tr>
+            ) : appointments.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="p-4 text-center italic">
+                  No appointments
+                </td>
+              </tr>
+            ) : (
+              appointments.map((app) => (
+                <tr
+                  key={`${app.patientid}-${app.appointmentid}`}
+                  className={`cursor-pointer hover:bg-gray-50 ${
+                    selAppt?.appointmentid === app.appointmentid
+                      ? 'bg-blue-100'
+                      : ''
+                  }`}
+                  onClick={() => {
+                    setSelPatientId(app.patientid);
+                    setSelAppt(app);
+                  }}
+                >
+                  <td className="px-4 py-2 text-left">
+                    {app.patientname}
+                  </td>
+                  <td className="px-4 py-2 text-left">
+                    {app.doctorname}
+                  </td>
+                  <td className="px-4 py-2 text-left">
+                    {app.appointmentdate.slice(0, 10)}
+                  </td>
+                  <td className="px-4 py-2 text-left">
+                    {app.appointmenttime}
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Add/Edit Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-lg">
-            <h2 className="text-xl font-semibold mb-4">Add Appointment</h2>
-            <form onSubmit={handleAddAppointment}>
-              <div className="grid grid-cols-2 gap-4 mb-3">
-                <div>
-                  <label className="block font-medium mb-1">Patient</label>
-                  <select
-                    value={patientId}
-                    required
-                    onChange={(e) => setPatientId(e.target.value)}
-                    className="w-full border border-gray-300 rounded px-3 py-2"
-                  >
-                    <option value="">Select a patient</option>
-                    {patients.map((p) => (
-                      <option key={p.patientid} value={p.patientid}>
-                        {p.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block font-medium mb-1">Doctor</label>
-                  <select
-                    value={doctorId}
-                    required
-                    onChange={(e) => setDoctorId(e.target.value)}
-                    className="w-full border border-gray-300 rounded px-3 py-2"
-                  >
-                    <option value="">Select a doctor</option>
-                    {doctors.map((d) => (
-                      <option key={d.doctorid} value={d.doctorid}>
-                        {d.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+            <h2 className="text-xl font-semibold mb-4">
+              {isEditing ? 'Edit' : 'Add'} Appointment
+            </h2>
+            <form onSubmit={handleSave} className="space-y-4">
+              {/* Patient */}
+              <div>
+                <label className="block mb-1">Patient</label>
+                <select
+                  value={patientId ?? ''}
+                  onChange={(e) =>
+                    setPatientId(
+                      e.target.value ? parseInt(e.target.value, 10) : null
+                    )
+                  }
+                  required
+                  className="w-full border px-2 py-1 rounded"
+                >
+                  <option value="">Select patient</option>
+                  {patients.map((p) => (
+                    <option key={p.patientid} value={p.patientid}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 mb-3">
-                <div>
-                  <label className="block font-medium mb-1">Date</label>
-                  <input
-                    type="date"
-                    value={date}
-                    required
-                    onChange={(e) => setDate(e.target.value)}
-                    className="w-full border border-gray-300 rounded px-3 py-2"
-                  />
-                </div>
-                <div>
-                  <label className="block font-medium mb-1">Time Slot</label>
-                  <select
-                    value={`${time}|${scheduleId}`}
-                    required
-                    onChange={(e) => {
-                      const [t, sid] = e.target.value.split('|');
-                      setTime(t);
-                      setScheduleId(sid);
-                    }}
-                    className="w-full border border-gray-300 rounded px-3 py-2"
-                  >
-                    <option value="">— select slot —</option>
-                    {timeSlots.map((slot, i) => (
-                      <option
-                        key={i}
-                        value={`${slot.value}|${slot.scheduleid}`}
-                      >
-                        {slot.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              {/* Doctor */}
+              <div>
+                <label className="block mb-1">Doctor</label>
+                <select
+                  value={doctorId}
+                  onChange={(e) => setDoctorId(e.target.value)}
+                  required
+                  className="w-full border px-2 py-1 rounded"
+                >
+                  <option value="">Select doctor</option>
+                  {doctors.map((d) => (
+                    <option key={d.doctorid} value={d.doctorid}>
+                      {d.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
-              <div className="text-right">
+              {/* Date */}
+              <div>
+                <label className="block mb-1">Date</label>
+                <input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  required
+                  className="w-full border px-2 py-1 rounded"
+                />
+              </div>
+
+              {/* Time Slot */}
+              <div>
+                <label className="block mb-1">Time Slot</label>
+                <select
+                  value={`${time}|${scheduleId}`}
+                  onChange={(e) => {
+                    const [t, s] = e.target.value.split('|');
+                    setTime(t);
+                    setScheduleId(s);
+                  }}
+                  required
+                  className="w-full border px-2 py-1 rounded"
+                >
+                  <option value="">Select slot</option>
+                  {timeSlots.map((slot) => (
+                    <option
+                      key={`${slot.scheduleid}-${slot.value}`}
+                      value={`${slot.value}|${slot.scheduleid}`}
+                    >
+                      {slot.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Actions */}
+              <div className="flex justify-end space-x-2">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="mr-3 px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                  className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
                 >
                   Cancel
                 </button>
@@ -326,7 +442,7 @@ const AppointmentsPage = () => {
                   type="submit"
                   className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
                 >
-                  Save
+                  {isEditing ? 'Save Changes' : 'Add'}
                 </button>
               </div>
             </form>
@@ -335,6 +451,4 @@ const AppointmentsPage = () => {
       )}
     </div>
   );
-};
-
-export default AppointmentsPage;
+}

@@ -1,15 +1,27 @@
+// frontend/src/pages/PrescriptionsPage.js
 import React, { useEffect, useState } from 'react';
+import ErrorModal from '../components/ErrorModal';
 
 const PrescriptionsPage = () => {
   const [prescriptions, setPrescriptions] = useState([]);
+  const [patients, setPatients] = useState([]);
+  const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+
+  // form fields
+  const [date, setDate] = useState('');
   const [patientId, setPatientId] = useState('');
   const [appointmentId, setAppointmentId] = useState('');
   const [medication, setMedication] = useState('');
   const [dosage, setDosage] = useState('');
   const [message, setMessage] = useState('');
 
+  // error‐modal
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  // load existing prescriptions
   const fetchPrescriptions = async () => {
     try {
       setLoading(true);
@@ -23,17 +35,65 @@ const PrescriptionsPage = () => {
     }
   };
 
-  useEffect(() => { fetchPrescriptions(); }, []);
+  // load patients for dropdown
+  const fetchPatients = async () => {
+    try {
+      const res = await fetch('/api/prescriptions/patients');
+      setPatients(await res.json());
+    } catch (err) {
+      console.error('Failed to fetch patients', err);
+    }
+  };
+
+  // load this patient’s appointments for the chosen date
+  const fetchPatientAppointments = async () => {
+    if (!patientId || !date) {
+      setAppointments([]);
+      return;
+    }
+    try {
+      const res = await fetch(
+        `/api/prescriptions/appointments?patientid=${patientId}&date=${date}`
+      );
+      setAppointments(await res.json());
+    } catch (err) {
+      console.error('Failed to fetch appointments', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchPrescriptions();
+    fetchPatients();
+  }, []);
+
+  // **Fixed**: wrap in inline callback to avoid returning a Promise
+  useEffect(() => {
+    fetchPatientAppointments();
+  }, [patientId, date]);
 
   const handleAddPrescription = async (e) => {
     e.preventDefault();
+
     try {
       const res = await fetch('/api/prescriptions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ patientid: patientId, appointmentid: appointmentId, medication, dosage })
+        body: JSON.stringify({
+          patientid: patientId,
+          appointmentid: appointmentId,
+          medication,
+          dosage,
+        }),
       });
+
+      if (res.status === 400) {
+        const { error } = await res.json();
+        setErrorMessage(error);
+        setShowError(true);
+        return;
+      }
       if (!res.ok) throw new Error('Failed to add prescription');
+
       await fetchPrescriptions();
       setMessage('Prescription added successfully.');
     } catch (err) {
@@ -41,7 +101,11 @@ const PrescriptionsPage = () => {
       setMessage('Error adding prescription.');
     } finally {
       setShowModal(false);
-      setPatientId(''); setAppointmentId(''); setMedication(''); setDosage('');
+      setDate('');
+      setPatientId('');
+      setAppointmentId('');
+      setMedication('');
+      setDosage('');
       setTimeout(() => setMessage(''), 3000);
     }
   };
@@ -49,7 +113,9 @@ const PrescriptionsPage = () => {
   const handleDeletePrescription = async (id) => {
     if (!window.confirm('Delete this prescription?')) return;
     try {
-      const res = await fetch(`/api/prescriptions/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/prescriptions/${id}`, {
+        method: 'DELETE',
+      });
       if (!res.ok) throw new Error('Delete failed');
       await fetchPrescriptions();
       setMessage('Prescription deleted.');
@@ -64,16 +130,31 @@ const PrescriptionsPage = () => {
   return (
     <div>
       <h1 className="text-2xl font-bold mb-4">Prescriptions</h1>
-      <button 
+      <button
         className="mb-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        onClick={() => setShowModal(true)}>
+        onClick={() => setShowModal(true)}
+      >
         + Add Prescription
       </button>
 
-      {message && <div className="mb-4 p-3 text-center bg-green-100 text-green-800 rounded">{message}</div>}
+      {message && (
+        <div className="mb-4 p-3 text-center bg-green-100 text-green-800 rounded">
+          {message}
+        </div>
+      )}
+
+      {/* Error Modal */}
+      {showError && (
+        <ErrorModal
+          message={errorMessage}
+          onClose={() => setShowError(false)}
+        />
+      )}
 
       <div className="bg-white rounded shadow p-4 overflow-x-auto">
-        {loading ? <p>Loading prescriptions...</p> : prescriptions.length === 0 ? (
+        {loading ? (
+          <p>Loading prescriptions...</p>
+        ) : prescriptions.length === 0 ? (
           <p className="italic text-gray-600">No prescriptions found.</p>
         ) : (
           <table className="w-full table-auto">
@@ -87,15 +168,24 @@ const PrescriptionsPage = () => {
               </tr>
             </thead>
             <tbody>
-              {prescriptions.map(pr => (
-                <tr key={pr.prescriptionid} className="border-b hover:bg-gray-50">
+              {prescriptions.map((pr) => (
+                <tr
+                  key={pr.prescriptionid}
+                  className="border-b hover:bg-gray-50"
+                >
                   <td className="px-4 py-2">{pr.medication}</td>
                   <td className="px-4 py-2">{pr.dosage || '-'}</td>
-                  <td className="px-4 py-2">{pr.patientname} (ID: {pr.patientid})</td>
+                  <td className="px-4 py-2">
+                    {pr.patientname} (ID: {pr.patientid})
+                  </td>
                   <td className="px-4 py-2">{pr.doctorname}</td>
                   <td className="px-4 py-2 text-center">
-                    <button onClick={() => handleDeletePrescription(pr.prescriptionid)}
-                            className="text-red-600 hover:underline">
+                    <button
+                      onClick={() =>
+                        handleDeletePrescription(pr.prescriptionid)
+                      }
+                      className="text-red-600 hover:underline"
+                    >
                       Delete
                     </button>
                   </td>
@@ -113,36 +203,80 @@ const PrescriptionsPage = () => {
             <h2 className="text-xl font-semibold mb-4">Add Prescription</h2>
             <form onSubmit={handleAddPrescription}>
               <div className="mb-3">
-                <label className="block font-medium mb-1">Patient ID</label>
-                <input type="number" value={patientId} required
-                  onChange={(e) => setPatientId(e.target.value)}
-                  className="w-full border border-gray-300 rounded px-3 py-2 focus:ring focus:ring-blue-200"/>
+                <label className="block font-medium mb-1">Date (optional)</label>
+                <input
+                  type="date"
+                  value={date}
+                  required
+                  onChange={(e) => setDate(e.target.value)}
+                  className="w-full border border-gray-300 rounded px-3 py-2"
+                />
               </div>
               <div className="mb-3">
-                <label className="block font-medium mb-1">Appointment ID</label>
-                <input type="number" value={appointmentId} required
+                <label className="block font-medium mb-1">Patient</label>
+                <select
+                  value={patientId}
+                  required
+                  onChange={(e) => setPatientId(e.target.value)}
+                  className="w-full border border-gray-300 rounded px-3 py-2"
+                >
+                  <option value="">Select a patient</option>
+                  {patients.map((p) => (
+                    <option key={p.patientid} value={p.patientid}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="mb-3">
+                <label className="block font-medium mb-1">Appointment</label>
+                <select
+                  value={appointmentId}
+                  required
+                  disabled={!appointments.length}
                   onChange={(e) => setAppointmentId(e.target.value)}
-                  className="w-full border border-gray-300 rounded px-3 py-2 focus:ring focus:ring-blue-200"/>
+                  className="w-full border border-gray-300 rounded px-3 py-2"
+                >
+                  <option value="">— select appointment —</option>
+                  {appointments.map((a) => (
+                    <option key={a.appointmentid} value={a.appointmentid}>
+                      {a.appointmenttime} with {a.doctorname} (
+                      #{a.appointmentid})
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="mb-3">
                 <label className="block font-medium mb-1">Medication</label>
-                <input type="text" value={medication} required
+                <input
+                  type="text"
+                  value={medication}
+                  required
                   onChange={(e) => setMedication(e.target.value)}
-                  className="w-full border border-gray-300 rounded px-3 py-2 focus:ring focus:ring-blue-200"/>
+                  className="w-full border border-gray-300 rounded px-3 py-2"
+                />
               </div>
               <div className="mb-3">
                 <label className="block font-medium mb-1">Dosage</label>
-                <input type="text" value={dosage}
+                <input
+                  type="text"
+                  value={dosage}
                   onChange={(e) => setDosage(e.target.value)}
-                  className="w-full border border-gray-300 rounded px-3 py-2 focus:ring focus:ring-blue-200"/>
+                  className="w-full border border-gray-300 rounded px-3 py-2"
+                />
               </div>
               <div className="text-right">
-                <button type="button" onClick={() => setShowModal(false)}
-                        className="mr-3 px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="mr-3 px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                >
                   Cancel
                 </button>
-                <button type="submit"
-                        className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                >
                   Save
                 </button>
               </div>
