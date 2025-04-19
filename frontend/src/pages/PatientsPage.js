@@ -117,7 +117,7 @@ const PatientsPage = () => {
                   <td className="px-4 py-2">{p.patientid}</td>
                   <td className="px-4 py-2">{p.firstname}</td>
                   <td className="px-4 py-2">{p.lastname}</td>
-                  <td className="px-4 py-2">{p.dob}</td>
+                  <td className="px-4 py-2">{p.dob.slice(0, 10)}</td>
                   <td className="px-4 py-2">
                     <button 
                       onClick={() => handleDeletePatient(p.patientid)}

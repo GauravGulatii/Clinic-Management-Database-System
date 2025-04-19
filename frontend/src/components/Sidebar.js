@@ -13,7 +13,7 @@ const Sidebar = () => {
       {/* Logo / Brand section */}
       <div className="flex flex-col items-center justify-center py-6 bg-gray-900">
         <i className="fas fa-clinic-medical text-4xl text-green-400 mb-2"></i>
-        <h2 className="text-2xl font-semibold">Clinic CMS</h2>
+        <h2 className="text-2xl font-semibold">Clinic CMS Tool</h2>
       </div>
       {/* Navigation Links */}
       <ul className="flex-1 flex flex-col mt-4">

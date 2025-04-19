@@ -92,7 +92,7 @@ const SchedulesPage = () => {
               {schedules.map(s => (
                 <tr key={s.scheduleid} className="border-b hover:bg-gray-50">
                   <td className="px-4 py-2">{s.doctorname} (ID: {s.doctorid})</td>
-                  <td className="px-4 py-2">{s.scheduledate}</td>
+                  <td className="px-4 py-2">{s.scheduledate.slice(0, 10)}</td>
                   <td className="px-4 py-2">{s.starttime}</td>
                   <td className="px-4 py-2">{s.endtime}</td>
                   <td className="px-4 py-2">{s.status || ''}</td>

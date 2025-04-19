@@ -1,9 +1,10 @@
+// frontend/src/pages/AppointmentsPage.js
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ErrorModal from '../components/ErrorModal';
 
 export default function AppointmentsPage() {
-  const nav = useNavigate();
+  const navigate = useNavigate();
 
   // — state —
   const [appointments, setAppointments] = useState([]);
@@ -50,7 +51,9 @@ export default function AppointmentsPage() {
       .finally(() => setLoading(false));
   };
 
-  useEffect(fetchAll, []);
+  useEffect(() => {
+    fetchAll();
+  }, []);
 
   // reload time‑slots when doctor or date changes
   useEffect(() => {
@@ -58,7 +61,9 @@ export default function AppointmentsPage() {
       setTimeSlots([]);
       return;
     }
-    fetch(`/api/appointments/availability?doctorid=${doctorId}&date=${date}`)
+    fetch(
+      `/api/appointments/availability?doctorid=${doctorId}&date=${date}`
+    )
       .then((r) => r.json())
       .then((schedules) => {
         const m = new Map();
@@ -84,7 +89,9 @@ export default function AppointmentsPage() {
     if (selPatientId == null) {
       setPatientAppts([]);
     } else {
-      setPatientAppts(appointments.filter((a) => a.patientid === selPatientId));
+      setPatientAppts(
+        appointments.filter((a) => a.patientid === selPatientId)
+      );
     }
   }, [selPatientId, appointments]);
 
@@ -114,7 +121,10 @@ export default function AppointmentsPage() {
   // add or update
   const handleSave = (e) => {
     e.preventDefault();
-    const staffid = parseInt(sessionStorage.getItem('currentStaffId') || '1', 10);
+    const staffid = parseInt(
+      sessionStorage.getItem('currentStaffId') || '1',
+      10
+    );
     const payload = {
       patientid: patientId,
       appointmentdate: date,
@@ -185,10 +195,15 @@ export default function AppointmentsPage() {
       <h1 className="text-2xl font-bold">Appointments</h1>
 
       {message && (
-        <div className="p-2 bg-green-100 text-green-800 rounded">{message}</div>
+        <div className="p-2 bg-green-100 text-green-800 rounded">
+          {message}
+        </div>
       )}
       {showError && (
-        <ErrorModal message={errorMsg} onClose={() => setShowError(false)} />
+        <ErrorModal
+          message={errorMsg}
+          onClose={() => setShowError(false)}
+        />
       )}
 
       <div className="flex space-x-2">
@@ -205,9 +220,11 @@ export default function AppointmentsPage() {
         <select
           value={selPatientId ?? ''}
           onChange={(e) => {
-            const id = e.target.value ? parseInt(e.target.value, 10) : null;
+            const id = e.target.value
+              ? parseInt(e.target.value, 10)
+              : null;
             setSelPatientId(id);
-            setSelAppt(null); // clear selected appointment only when patient changes
+            setSelAppt(null);
           }}
           className="border px-2 py-1 rounded"
         >
@@ -248,9 +265,10 @@ export default function AppointmentsPage() {
         </button>
         <button
           onClick={() =>
-            nav(
-              `/billing?patientid=${selAppt?.patientid}&appointmentid=${selAppt?.appointmentid}`
-            )
+            navigate({
+              pathname: '/billing',
+              search: `?patientid=${selAppt.patientid}&appointmentid=${selAppt.appointmentid}`,
+            })
           }
           disabled={!selAppt}
           className="px-3 py-1 bg-blue-500 rounded text-white hover:bg-blue-600 disabled:opacity-50"
@@ -259,9 +277,10 @@ export default function AppointmentsPage() {
         </button>
         <button
           onClick={() =>
-            nav(
-              `/prescriptions?patientid=${selAppt?.patientid}&appointmentid=${selAppt?.appointmentid}`
-            )
+            navigate({
+              pathname: '/prescriptions',
+              search: `?patientid=${selAppt.patientid}&appointmentid=${selAppt.appointmentid}`,
+            })
           }
           disabled={!selAppt}
           className="px-3 py-1 bg-green-500 rounded text-white hover:bg-green-600 disabled:opacity-50"
@@ -270,9 +289,10 @@ export default function AppointmentsPage() {
         </button>
         <button
           onClick={() =>
-            nav(
-              `/medicalrecords?patientid=${selAppt?.patientid}&appointmentid=${selAppt?.appointmentid}`
-            )
+            navigate({
+              pathname: '/records',
+              search: `?patientid=${selAppt.patientid}&appointmentid=${selAppt.appointmentid}`,
+            })
           }
           disabled={!selAppt}
           className="px-3 py-1 bg-purple-500 rounded text-white hover:bg-purple-600 disabled:opacity-50"
@@ -344,7 +364,6 @@ export default function AppointmentsPage() {
         </table>
       </div>
 
-      {/* Add/Edit Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-lg">
@@ -359,7 +378,9 @@ export default function AppointmentsPage() {
                   value={patientId ?? ''}
                   onChange={(e) =>
                     setPatientId(
-                      e.target.value ? parseInt(e.target.value, 10) : null
+                      e.target.value
+                        ? parseInt(e.target.value, 10)
+                        : null
                     )
                   }
                   required
