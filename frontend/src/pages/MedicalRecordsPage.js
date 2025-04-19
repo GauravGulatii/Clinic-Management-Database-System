@@ -1,38 +1,43 @@
+// frontend/src/pages/MedicalRecordsPage.js
 import React, { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import ErrorModal from '../components/ErrorModal';
 
 const PAGE_SIZE = 10;
 
-const MedicalRecordsPage = () => {
+export default function MedicalRecordsPage() {
+  const [searchParams] = useSearchParams();
+  const queryPatientId = parseInt(searchParams.get('patientid') || '', 10);
+  const queryAppointmentId = parseInt(
+    searchParams.get('appointmentid') || '',
+    10
+  );
+
   const [records, setRecords] = useState([]);
   const [patients, setPatients] = useState([]);
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
 
-  // form fields
-  const [date, setDate] = useState(''); // optional YYYY-MM-DD
+  const [date, setDate] = useState(''); // YYYY-MM-DD
   const [patientId, setPatientId] = useState('');
   const [appointmentId, setAppointmentId] = useState('');
   const [diagnosis, setDiagnosis] = useState('');
   const [treatment, setTreatment] = useState('');
   const [message, setMessage] = useState('');
 
-  // error modal
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // search + pagination
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(0);
 
-  // load existing records
+  // fetch existing records
   const fetchRecords = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       const res = await fetch('/api/medicalrecords');
-      const data = await res.json();
-      setRecords(data);
+      setRecords(await res.json());
     } catch (err) {
       console.error('Failed to fetch records', err);
     } finally {
@@ -40,7 +45,7 @@ const MedicalRecordsPage = () => {
     }
   };
 
-  // load patients dropdown
+  // fetch patients list
   const fetchPatients = async () => {
     try {
       const res = await fetch('/api/medicalrecords/patients');
@@ -50,7 +55,7 @@ const MedicalRecordsPage = () => {
     }
   };
 
-  // load appointments for patient on given date
+  // fetch this patient’s appointments for the chosen date
   const fetchPatientAppointments = async () => {
     if (!patientId || !date) {
       setAppointments([]);
@@ -66,18 +71,54 @@ const MedicalRecordsPage = () => {
     }
   };
 
+  // on mount
   useEffect(() => {
     fetchRecords();
     fetchPatients();
   }, []);
 
+  // when patient/date change
   useEffect(() => {
     fetchPatientAppointments();
-    setAppointmentId(''); // reset when patient/date changes
   }, [patientId, date]);
 
-  // format ISO date to yyyy-MM-dd
-  const fmt = (iso) => (iso ? new Date(iso).toLocaleDateString('en-CA') : '');
+  // if URL has patient+appointment, prepopulate and open modal
+  useEffect(() => {
+    if (queryPatientId && queryAppointmentId) {
+      // fetch all appointments to get date
+      fetch('/api/appointments')
+        .then((res) => res.json())
+        .then((all) => {
+          const appt = all.find(
+            (a) =>
+              a.patientid === queryPatientId &&
+              a.appointmentid === queryAppointmentId
+          );
+          if (!appt) return;
+            const dateStr = appt.appointmentdate.slice(0, 10);
+            // 1) set patient & date
+            setPatientId(queryPatientId.toString());
+            setDate(dateStr);
+             // 2) fetch the actual medical‐record appointments list so the select isn’t disabled
+             fetch(
+                         `/api/medicalrecords/appointments?patientid=${queryPatientId}&date=${dateStr}`
+                       )
+                       .then((r) => r.json())
+                                  .then((data) => {
+                                    setAppointments(data);
+                                  })
+                                  .finally(() => {
+                                    // 3) now prefill appointmentId and open
+                                    setAppointmentId(queryAppointmentId.toString());
+                                    setShowModal(true);
+                                  });
+                              })
+                              .catch(console.error);
+                           }
+                         }, [queryPatientId, queryAppointmentId]);
+
+  const fmt = (iso) =>
+    iso ? new Date(iso).toLocaleDateString('en-CA') : '';
 
   const handleAddRecord = async (e) => {
     e.preventDefault();
@@ -92,7 +133,6 @@ const MedicalRecordsPage = () => {
           treatment,
         }),
       });
-
       if (res.status === 400) {
         const { error } = await res.json();
         setErrorMessage(error);
@@ -100,7 +140,6 @@ const MedicalRecordsPage = () => {
         return;
       }
       if (!res.ok) throw new Error('Failed to add record');
-
       await fetchRecords();
       setMessage('Medical record added successfully.');
     } catch (err) {
@@ -120,7 +159,10 @@ const MedicalRecordsPage = () => {
   const handleDeleteRecord = async (id) => {
     if (!window.confirm('Delete this medical record?')) return;
     try {
-      const res = await fetch(`/api/medicalrecords/${id}`, { method: 'DELETE' });
+      const res = await fetch(
+        `/api/medicalrecords/${id}`,
+        { method: 'DELETE' }
+      );
       if (!res.ok) throw new Error('Delete failed');
       await fetchRecords();
       setMessage('Medical record deleted.');
@@ -154,7 +196,9 @@ const MedicalRecordsPage = () => {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Medical Records</h1>
+        <h1 className="text-2xl font-bold">
+          Medical Records
+        </h1>
         <button
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
           onClick={() => setShowModal(true)}
@@ -170,7 +214,10 @@ const MedicalRecordsPage = () => {
       )}
 
       {showError && (
-        <ErrorModal message={errorMessage} onClose={() => setShowError(false)} />
+        <ErrorModal
+          message={errorMessage}
+          onClose={() => setShowError(false)}
+        />
       )}
 
       <div className="flex items-center space-x-2">
@@ -184,8 +231,9 @@ const MedicalRecordsPage = () => {
           }}
           className="flex-1 border border-gray-300 rounded px-3 py-2 focus:ring focus:ring-blue-200"
         />
-        <span className="text-base text-gray-600">
-          {filtered.length} record{filtered.length !== 1 && 's'}
+        <span className="text-base">
+          {filtered.length} record
+          {filtered.length !== 1 && 's'}
         </span>
       </div>
 
@@ -193,12 +241,21 @@ const MedicalRecordsPage = () => {
         <table className="w-full table-auto">
           <thead className="bg-gray-100 sticky top-0">
             <tr>
-              <th className="px-4 py-2 text-left font-medium">Date</th>
-              <th className="px-4 py-2 text-left font-medium">Patient</th>
-              <th className="px-4 py-2 text-left font-medium">Doctor</th>
-              <th className="px-4 py-2 text-left font-medium">Diagnosis</th>
-              <th className="px-4 py-2 text-left font-medium">Treatment</th>
-              <th className="px-4 py-2 text-center font-medium">Actions</th>
+              {[
+                'Date',
+                'Patient',
+                'Doctor',
+                'Diagnosis',
+                'Treatment',
+                'Actions',
+              ].map((h) => (
+                <th
+                  key={h}
+                  className="px-4 py-2 text-left font-medium"
+                >
+                  {h}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
@@ -210,21 +267,39 @@ const MedicalRecordsPage = () => {
               </tr>
             ) : pageSlice.length === 0 ? (
               <tr>
-                <td colSpan={6} className="p-4 text-center italic text-gray-600">
+                <td
+                  colSpan={6}
+                  className="p-4 text-center italic text-gray-600"
+                >
                   No records found.
                 </td>
               </tr>
             ) : (
               pageSlice.map((r) => (
-                <tr key={r.recordid} className="even:bg-gray-50">
-                  <td className="px-4 py-2">{fmt(r.appointmentdate)}</td>
-                  <td className="px-4 py-2">{r.patientname}</td>
-                  <td className="px-4 py-2">{r.doctorname}</td>
-                  <td className="px-4 py-2">{r.diagnosis || '-'}</td>
-                  <td className="px-4 py-2">{r.treatment || '-'}</td>
+                <tr
+                  key={r.recordid}
+                  className="even:bg-gray-50"
+                >
+                  <td className="px-4 py-2">
+                    {fmt(r.appointmentdate)}
+                  </td>
+                  <td className="px-4 py-2">
+                    {r.patientname}
+                  </td>
+                  <td className="px-4 py-2">
+                    {r.doctorname}
+                  </td>
+                  <td className="px-4 py-2">
+                    {r.diagnosis || '-'}
+                  </td>
+                  <td className="px-4 py-2">
+                    {r.treatment || '-'}
+                  </td>
                   <td className="px-4 py-2 text-center">
                     <button
-                      onClick={() => handleDeleteRecord(r.recordid)}
+                      onClick={() =>
+                        handleDeleteRecord(r.recordid)
+                      }
                       className="text-red-600 hover:underline"
                     >
                       Delete
@@ -250,7 +325,9 @@ const MedicalRecordsPage = () => {
             Page {page + 1} of {totalPages}
           </span>
           <button
-            onClick={() => setPage((p) => Math.min(p + 1, totalPages - 1))}
+            onClick={() =>
+              setPage((p) => Math.min(p + 1, totalPages - 1))
+            }
             disabled={page + 1 === totalPages}
             className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
           >
@@ -262,10 +339,17 @@ const MedicalRecordsPage = () => {
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-lg">
-            <h2 className="text-xl font-semibold mb-4">Add Medical Record</h2>
-            <form onSubmit={handleAddRecord} className="space-y-4">
+            <h2 className="text-xl font-semibold mb-4">
+              Add Medical Record
+            </h2>
+            <form
+              onSubmit={handleAddRecord}
+              className="space-y-4"
+            >
               <div>
-                <label className="block font-medium mb-1">Date (optional)</label>
+                <label className="block font-medium mb-1">
+                  Date (optional)
+                </label>
                 <input
                   type="date"
                   value={date}
@@ -274,52 +358,78 @@ const MedicalRecordsPage = () => {
                 />
               </div>
               <div>
-                <label className="block font-medium mb-1">Patient</label>
+                <label className="block font-medium mb-1">
+                  Patient
+                </label>
                 <select
                   value={patientId}
                   required
-                  onChange={(e) => setPatientId(e.target.value)}
+                  onChange={(e) =>
+                    setPatientId(e.target.value)
+                  }
                   className="w-full border border-gray-300 rounded px-3 py-2"
                 >
                   <option value="">Select a patient</option>
                   {patients.map((p) => (
-                    <option key={p.patientid} value={p.patientid}>
+                    <option
+                      key={p.patientid}
+                      value={p.patientid}
+                    >
                       {p.name}
                     </option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="block font-medium mb-1">Appointment</label>
+                <label className="block font-medium mb-1">
+                  Appointment
+                </label>
                 <select
                   value={appointmentId}
                   required
                   disabled={!appointments.length}
-                  onChange={(e) => setAppointmentId(e.target.value)}
+                  onChange={(e) =>
+                    setAppointmentId(e.target.value)
+                  }
                   className="w-full border border-gray-300 rounded px-3 py-2"
                 >
-                  <option value="">— select appointment —</option>
+                  <option value="">
+                    — select appointment —
+                  </option>
                   {appointments.map((a) => (
-                    <option key={a.appointmentid} value={a.appointmentid}>
-                      {fmt(a.appointmentdate)} {a.appointmenttime} with{' '}
-                      {a.doctorname} (#{a.appointmentid})
+                    <option
+                      key={a.appointmentid}
+                      value={a.appointmentid}
+                    >
+                      {fmt(a.appointmentdate)}{' '}
+                      {a.appointmenttime} with{' '}
+                      {a.doctorname} (#
+                      {a.appointmentid})
                     </option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="block font-medium mb-1">Diagnosis</label>
+                <label className="block font-medium mb-1">
+                  Diagnosis
+                </label>
                 <textarea
                   value={diagnosis}
-                  onChange={(e) => setDiagnosis(e.target.value)}
+                  onChange={(e) =>
+                    setDiagnosis(e.target.value)
+                  }
                   className="w-full border border-gray-300 rounded px-3 py-2"
                 />
               </div>
               <div>
-                <label className="block font-medium mb-1">Treatment</label>
+                <label className="block font-medium mb-1">
+                  Treatment
+                </label>
                 <textarea
                   value={treatment}
-                  onChange={(e) => setTreatment(e.target.value)}
+                  onChange={(e) =>
+                    setTreatment(e.target.value)
+                  }
                   className="w-full border border-gray-300 rounded px-3 py-2"
                 />
               </div>
@@ -344,6 +454,4 @@ const MedicalRecordsPage = () => {
       )}
     </div>
   );
-};
-
-export default MedicalRecordsPage;
+}

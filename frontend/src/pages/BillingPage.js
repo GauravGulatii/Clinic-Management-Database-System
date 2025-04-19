@@ -1,5 +1,6 @@
 // frontend/src/pages/BillingPage.js
 import React, { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import ErrorModal from '../components/ErrorModal';
 
 const STATUS_OPTIONS = ['All', 'Unpaid', 'Paid', 'Pending'];
@@ -9,14 +10,21 @@ const SORT_OPTIONS = [
 ];
 
 export default function BillingPage() {
+  const [searchParams] = useSearchParams();
+  const queryPatientId = parseInt(searchParams.get('patientid') || '', 10);
+  const queryAppointmentId = parseInt(
+    searchParams.get('appointmentid') || '',
+    10
+  );
+
+  // modal fields
   const [bills, setBills] = useState([]);
+  const [availableAppts, setAvailableAppts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState(null);
 
-  // modal fields
   const [billingDate, setBillingDate] = useState('');
-  const [availableAppts, setAvailableAppts] = useState([]);
   const [appointmentId, setAppointmentId] = useState('');
   const [patientId, setPatientId] = useState('');
   const [amount, setAmount] = useState('');
@@ -30,9 +38,10 @@ export default function BillingPage() {
   const [filterStatus, setFilterStatus] = useState('All');
   const [sortOrder, setSortOrder] = useState('date-asc');
 
-  const fmt = iso => (iso ? new Date(iso).toLocaleDateString('en-CA') : '');
+  const fmt = (iso) =>
+    iso ? new Date(iso).toLocaleDateString('en-CA') : '';
 
-  // load billing + appointments
+  // load billing records
   const fetchBills = async () => {
     setLoading(true);
     try {
@@ -51,20 +60,52 @@ export default function BillingPage() {
 
   // when billingDate changes, load appointments
   useEffect(() => {
-    if (!billingDate) return setAvailableAppts([]);
+    if (!billingDate) {
+      setAvailableAppts([]);
+      return;
+    }
     (async () => {
       const res = await fetch('/api/appointments');
       const all = await res.json();
+      // filter by date string
       setAvailableAppts(
-        all.filter(a => a.appointmentdate.slice(0, 10) === billingDate)
+        all.filter(
+          (a) => a.appointmentdate.slice(0, 10) === billingDate
+        )
       );
     })();
   }, [billingDate]);
 
-  // open modal for add or edit
-  const openModal = bill => {
+  // if URL has query params, fetch that appointment and open modal
+  useEffect(() => {
+    if (queryPatientId && queryAppointmentId) {
+      fetch('/api/appointments')
+        .then((res) => res.json())
+        .then((all) => {
+          const appt = all.find(
+            (a) =>
+              a.patientid === queryPatientId &&
+              a.appointmentid === queryAppointmentId
+          );
+          if (appt) {
+            const dateStr = appt.appointmentdate.slice(0, 10);
+            setEditId(null);
+            setBillingDate(dateStr);
+            setAppointmentId(queryAppointmentId.toString());
+            setPatientId(queryPatientId.toString());
+            setAmount('');
+            setStatus('Unpaid');
+            setShowModal(true);
+          }
+        })
+        .catch(console.error);
+    }
+  }, [queryPatientId, queryAppointmentId]);
+
+  // open modal for add or edit via button
+  const openModal = (bill) => {
     if (bill) {
-      // edit
+      // edit existing
       setEditId(bill.billingid);
       setBillingDate(bill.appointmentdate.slice(0, 10));
       setAppointmentId(bill.appointmentid.toString());
@@ -84,7 +125,7 @@ export default function BillingPage() {
   };
 
   // save new or edited
-  const handleSave = async e => {
+  const handleSave = async (e) => {
     e.preventDefault();
     try {
       const staffId = sessionStorage.getItem('currentStaffId') || null;
@@ -95,7 +136,9 @@ export default function BillingPage() {
         paymentstatus: status,
         staffid: staffId,
       };
-      const url = editId ? `/api/billing/${editId}` : '/api/billing';
+      const url = editId
+        ? `/api/billing/${editId}`
+        : '/api/billing';
       const method = editId ? 'PUT' : 'POST';
       const res = await fetch(url, {
         method,
@@ -110,7 +153,11 @@ export default function BillingPage() {
       }
       if (!res.ok) throw new Error('Save failed');
       await fetchBills();
-      setMessage(editId ? 'Billing record updated.' : 'Billing record added.');
+      setMessage(
+        editId
+          ? 'Billing record updated.'
+          : 'Billing record added.'
+      );
     } catch (err) {
       console.error(err);
       setMessage('Error saving billing record.');
@@ -121,10 +168,12 @@ export default function BillingPage() {
     }
   };
 
-  const handleDelete = async id => {
+  const handleDelete = async (id) => {
     if (!window.confirm('Delete this billing record?')) return;
     try {
-      const res = await fetch(`/api/billing/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/billing/${id}`, {
+        method: 'DELETE',
+      });
       if (!res.ok) throw new Error('Delete failed');
       await fetchBills();
       setMessage('Billing record deleted.');
@@ -139,7 +188,7 @@ export default function BillingPage() {
   const filtered = useMemo(() => {
     let arr = bills;
     if (filterStatus !== 'All')
-      arr = arr.filter(b => b.paymentstatus === filterStatus);
+      arr = arr.filter((b) => b.paymentstatus === filterStatus);
     arr = [...arr].sort((a, b) => {
       const da = new Date(a.appointmentdate);
       const db = new Date(b.appointmentdate);
@@ -148,8 +197,7 @@ export default function BillingPage() {
     return arr;
   }, [bills, filterStatus, sortOrder]);
 
-  // status badge
-  const badge = s => {
+  const badge = (s) => {
     const map = {
       Paid: 'bg-green-100 text-green-800',
       Unpaid: 'bg-red-100 text-red-800',
@@ -182,16 +230,19 @@ export default function BillingPage() {
         </div>
       )}
       {showError && (
-        <ErrorModal message={errorMessage} onClose={() => setShowError(false)} />
+        <ErrorModal
+          message={errorMessage}
+          onClose={() => setShowError(false)}
+        />
       )}
 
       <div className="flex flex-wrap gap-4">
         <select
           value={filterStatus}
-          onChange={e => setFilterStatus(e.target.value)}
+          onChange={(e) => setFilterStatus(e.target.value)}
           className="border px-3 py-2 rounded"
         >
-          {STATUS_OPTIONS.map(s => (
+          {STATUS_OPTIONS.map((s) => (
             <option key={s} value={s}>
               {s}
             </option>
@@ -199,10 +250,10 @@ export default function BillingPage() {
         </select>
         <select
           value={sortOrder}
-          onChange={e => setSortOrder(e.target.value)}
+          onChange={(e) => setSortOrder(e.target.value)}
           className="border px-3 py-2 rounded"
         >
-          {SORT_OPTIONS.map(o => (
+          {SORT_OPTIONS.map((o) => (
             <option key={o.value} value={o.value}>
               {o.label}
             </option>
@@ -214,8 +265,19 @@ export default function BillingPage() {
         <table className="w-full">
           <thead className="bg-blue-500 text-white">
             <tr>
-              {['Patient', 'Date', 'Time', 'Amount', 'Status', 'Staff', 'Actions'].map(h => (
-                <th key={h} className="px-4 py-2 text-left text-sm">
+              {[
+                'Patient',
+                'Date',
+                'Time',
+                'Amount',
+                'Status',
+                'Staff',
+                'Actions',
+              ].map((h) => (
+                <th
+                  key={h}
+                  className="px-4 py-2 text-left text-sm"
+                >
                   {h}
                 </th>
               ))}
@@ -224,18 +286,24 @@ export default function BillingPage() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={7} className="p-4 text-center">
+                <td
+                  colSpan={7}
+                  className="p-4 text-center"
+                >
                   Loading…
                 </td>
               </tr>
             ) : filtered.length === 0 ? (
               <tr>
-                <td colSpan={7} className="p-4 text-center text-gray-600 italic">
+                <td
+                  colSpan={7}
+                  className="p-4 text-center text-gray-600 italic"
+                >
                   No records.
                 </td>
               </tr>
             ) : (
-              filtered.map(b => (
+              filtered.map((b) => (
                 <tr
                   key={`${b.patientid}-${b.appointmentid}`}
                   className="even:bg-gray-50"
@@ -243,13 +311,21 @@ export default function BillingPage() {
                   <td className="px-4 py-2 text-sm">
                     {b.patientname} (#{b.patientid})
                   </td>
-                  <td className="px-4 py-2 text-sm">{fmt(b.appointmentdate)}</td>
-                  <td className="px-4 py-2 text-sm">{b.appointmenttime}</td>
+                  <td className="px-4 py-2 text-sm">
+                    {fmt(b.appointmentdate)}
+                  </td>
+                  <td className="px-4 py-2 text-sm">
+                    {b.appointmenttime}
+                  </td>
                   <td className="px-4 py-2 text-sm">
                     ${Number(b.amount).toFixed(2)}
                   </td>
-                  <td className="px-4 py-2">{badge(b.paymentstatus)}</td>
-                  <td className="px-4 py-2 text-sm">{b.staffname || '-'}</td>
+                  <td className="px-4 py-2">
+                    {badge(b.paymentstatus)}
+                  </td>
+                  <td className="px-4 py-2 text-sm">
+                    {b.staffname || '-'}
+                  </td>
                   <td className="px-4 py-2 text-center space-x-2">
                     <button
                       onClick={() => openModal(b)}
@@ -283,34 +359,47 @@ export default function BillingPage() {
               {!editId && (
                 <>
                   <div>
-                    <label className="block mb-1 font-medium">Date</label>
+                    <label className="block mb-1 font-medium">
+                      Date
+                    </label>
                     <input
                       type="date"
                       value={billingDate}
                       required
-                      onChange={e => setBillingDate(e.target.value)}
+                      onChange={(e) =>
+                        setBillingDate(e.target.value)
+                      }
                       className="w-full border px-3 py-2 rounded"
                     />
                   </div>
                   <div>
-                    <label className="block mb-1 font-medium">Appointment</label>
+                    <label className="block mb-1 font-medium">
+                      Appointment
+                    </label>
                     <select
                       value={appointmentId}
                       required
-                      onChange={e => {
+                      onChange={(e) => {
                         const sel = availableAppts.find(
-                          a => a.appointmentid === e.target.value
+                          (a) =>
+                            a.appointmentid.toString() ===
+                            e.target.value
                         );
                         setAppointmentId(e.target.value);
-                        setPatientId(sel?.patientid || '');
+                        setPatientId(
+                          sel?.patientid.toString() || ''
+                        );
                       }}
                       className="w-full border px-3 py-2 rounded"
                     >
                       <option value="">— select appointment —</option>
-                      {availableAppts.map(a => (
-                        <option key={a.appointmentid} value={a.appointmentid}>
-                          {fmt(a.appointmentdate)} {a.appointmenttime} —{' '}
-                          {a.patientname}
+                      {availableAppts.map((a) => (
+                        <option
+                          key={a.appointmentid}
+                          value={a.appointmentid}
+                        >
+                          {fmt(a.appointmentdate)}{' '}
+                          {a.appointmenttime} — {a.patientname}
                         </option>
                       ))}
                     </select>
@@ -318,24 +407,28 @@ export default function BillingPage() {
                 </>
               )}
               <div>
-                <label className="block mb-1 font-medium">Amount</label>
+                <label className="block mb-1 font-medium">
+                  Amount
+                </label>
                 <input
                   type="number"
                   step="0.01"
                   value={amount}
                   required
-                  onChange={e => setAmount(e.target.value)}
+                  onChange={(e) => setAmount(e.target.value)}
                   className="w-full border px-3 py-2 rounded"
                 />
               </div>
               <div>
-                <label className="block mb-1 font-medium">Status</label>
+                <label className="block mb-1 font-medium">
+                  Status
+                </label>
                 <select
                   value={status}
-                  onChange={e => setStatus(e.target.value)}
+                  onChange={(e) => setStatus(e.target.value)}
                   className="w-full border px-3 py-2 rounded"
                 >
-                  {['Unpaid', 'Paid', 'Pending'].map(s => (
+                  {['Unpaid', 'Paid', 'Pending'].map((s) => (
                     <option key={s} value={s}>
                       {s}
                     </option>
