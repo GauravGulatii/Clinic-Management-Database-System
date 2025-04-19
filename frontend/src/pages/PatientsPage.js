@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+// frontend/src/pages/PatientsPage.js
+import React, { useEffect, useMemo, useState } from 'react';
 
 const PatientsPage = () => {
   const [patients, setPatients] = useState([]);
@@ -8,6 +9,10 @@ const PatientsPage = () => {
   const [lastName, setLastName] = useState('');
   const [dob, setDob] = useState('');
   const [message, setMessage] = useState('');
+
+  // new: search + sort state
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortAsc, setSortAsc] = useState(true);
 
   // Fetch patients list from API
   const fetchPatients = async () => {
@@ -47,7 +52,9 @@ const PatientsPage = () => {
       setMessage('Error adding patient.');
     } finally {
       // Reset form and close modal
-      setFirstName(''); setLastName(''); setDob('');
+      setFirstName('');
+      setLastName('');
+      setDob('');
       setShowModal(false);
       // Clear message after a short delay
       setTimeout(() => setMessage(''), 3000);
@@ -75,21 +82,60 @@ const PatientsPage = () => {
     }
   };
 
+  // filter + sort logic
+  const filteredAndSorted = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    let list = patients.filter(p => {
+      const idStr = p.patientid.toString();
+      const fn = p.firstname.toLowerCase();
+      const ln = p.lastname.toLowerCase();
+      const d = p.dob.slice(0,10);
+      return (
+        idStr.includes(term) ||
+        fn.includes(term) ||
+        ln.includes(term) ||
+        d.includes(term)
+      );
+    });
+    list.sort((a, b) => {
+      const cmp = a.firstname.localeCompare(b.firstname);
+      return sortAsc ? cmp : -cmp;
+    });
+    return list;
+  }, [patients, searchTerm, sortAsc]);
+
   return (
     <div className="relative">
       <h1 className="text-2xl font-bold mb-4">Patients</h1>
 
+      {/* Search & Sort Controls */}
+      <div className="flex items-center mb-4 space-x-2">
+        <input
+          type="text"
+          placeholder="🔍 Search by ID, name, or DOB"
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          className="flex-1 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-200"
+        />
+        <button
+          onClick={() => setSortAsc(a => !a)}
+          className="bg-gray-200 px-3 py-2 rounded hover:bg-gray-300"
+        >
+          First Name {sortAsc ? '↑' : '↓'}
+        </button>
+      </div>
+
       {/* Add Patient Button */}
       <button 
         className="mb-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        onClick={() => setShowModal(true)}>
+        onClick={() => setShowModal(true)}
+      >
         + Add Patient
       </button>
 
       {/* Success/Error message */}
       {message && (
-        <div className="mb-4 p-3 text-center rounded 
-                        bg-green-100 text-green-800">
+        <div className="mb-4 p-3 text-center rounded bg-green-100 text-green-800">
           {message}
         </div>
       )}
@@ -98,7 +144,7 @@ const PatientsPage = () => {
       <div className="bg-white rounded shadow p-4 overflow-x-auto">
         {loading ? (
           <p>Loading patients...</p>
-        ) : patients.length === 0 ? (
+        ) : filteredAndSorted.length === 0 ? (
           <p className="italic text-gray-600">No patients found.</p>
         ) : (
           <table className="w-full table-auto">
@@ -112,7 +158,7 @@ const PatientsPage = () => {
               </tr>
             </thead>
             <tbody>
-              {patients.map(p => (
+              {filteredAndSorted.map(p => (
                 <tr key={p.patientid} className="border-b hover:bg-gray-50">
                   <td className="px-4 py-2">{p.patientid}</td>
                   <td className="px-4 py-2">{p.firstname}</td>
@@ -121,7 +167,8 @@ const PatientsPage = () => {
                   <td className="px-4 py-2">
                     <button 
                       onClick={() => handleDeletePatient(p.patientid)}
-                      className="text-red-600 hover:underline">
+                      className="text-red-600 hover:underline"
+                    >
                       Delete
                     </button>
                   </td>
@@ -140,30 +187,46 @@ const PatientsPage = () => {
             <form onSubmit={handleAddPatient}>
               <div className="mb-3">
                 <label className="block font-medium mb-1">First Name</label>
-                <input type="text" value={firstName} required
+                <input
+                  type="text"
+                  value={firstName}
+                  required
                   onChange={(e) => setFirstName(e.target.value)}
-                  className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-200" />
+                  className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-200"
+                />
               </div>
               <div className="mb-3">
                 <label className="block font-medium mb-1">Last Name</label>
-                <input type="text" value={lastName} required
+                <input
+                  type="text"
+                  value={lastName}
+                  required
                   onChange={(e) => setLastName(e.target.value)}
-                  className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-200" />
+                  className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-200"
+                />
               </div>
               <div className="mb-3">
                 <label className="block font-medium mb-1">Date of Birth</label>
-                <input type="date" value={dob} required
+                <input
+                  type="date"
+                  value={dob}
+                  required
                   onChange={(e) => setDob(e.target.value)}
-                  className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-200" />
+                  className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-200"
+                />
               </div>
               <div className="text-right">
-                <button type="button" 
-                        onClick={() => setShowModal(false)}
-                        className="mr-3 px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="mr-3 px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                >
                   Cancel
                 </button>
-                <button type="submit" 
-                        className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                >
                   Save
                 </button>
               </div>

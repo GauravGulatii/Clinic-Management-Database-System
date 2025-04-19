@@ -223,7 +223,7 @@ export default function MedicalRecordsPage() {
       <div className="flex items-center space-x-2">
         <input
           type="text"
-          placeholder="🔍 Search records..."
+          placeholder="🔍 Search Date ,Patient, Doctor, Diagnosis or Treatment"
           value={searchTerm}
           onChange={(e) => {
             setSearchTerm(e.target.value);
