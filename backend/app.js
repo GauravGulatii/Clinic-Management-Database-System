@@ -17,6 +17,7 @@ app.use('/api/schedules',     require('./routes/schedules'));
 app.use('/api/prescriptions', require('./routes/prescriptions'));
 app.use('/api/medicalrecords', require('./routes/medicalrecords'));
 app.use('/api/billing',       require('./routes/billing'));
+app.use('/api/staff', require('./routes/staff'));
 
 // Start server
 const PORT = process.env.PORT || 5000;

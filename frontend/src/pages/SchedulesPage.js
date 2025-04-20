@@ -1,17 +1,19 @@
-// frontend/src/pages/SchedulesPage.js
+// src/pages/SchedulesPage.js
 import React, { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import DeleteMessage from '../components/DeleteMessage';
 
 export default function SchedulesPage() {
-  const [schedules, setSchedules] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [doctorId, setDoctorId] = useState('');
-  const [date, setDate] = useState('');
-  const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
-  const [status, setStatus] = useState('Available');
+  const [schedules, setSchedules]   = useState([]);
+  const [loading, setLoading]       = useState(true);
+  const [showModal, setShowModal]   = useState(false);
+  const [doctorId, setDoctorId]     = useState('');
+  const [date, setDate]             = useState('');
+  const [startTime, setStartTime]   = useState('');
+  const [endTime, setEndTime]       = useState('');
+  const [status, setStatus]         = useState('Available');
+
+  const [doctors, setDoctors]       = useState([]);       // <-- new
 
   // for delete confirmation
   const [showDelete, setShowDelete] = useState(false);
@@ -19,8 +21,9 @@ export default function SchedulesPage() {
 
   // search & sort
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortAsc, setSortAsc] = useState(true);
+  const [sortAsc, setSortAsc]       = useState(true);
 
+  // fetch schedules
   const fetchSchedules = async () => {
     try {
       setLoading(true);
@@ -35,8 +38,21 @@ export default function SchedulesPage() {
     }
   };
 
+  // fetch doctors list for dropdown
+  const fetchDoctors = async () => {
+    try {
+      const res = await fetch('/api/doctors');
+      const data = await res.json();
+      setDoctors(data);
+    } catch (err) {
+      console.error('Failed to fetch doctors', err);
+      toast.error('Failed to load doctors');
+    }
+  };
+
   useEffect(() => {
     fetchSchedules();
+    fetchDoctors();  // <-- load doctors on mount
   }, []);
 
   const handleAddSchedule = async (e) => {
@@ -60,7 +76,11 @@ export default function SchedulesPage() {
       toast.error('Error adding schedule');
     } finally {
       setShowModal(false);
-      setDoctorId(''); setDate(''); setStartTime(''); setEndTime(''); setStatus('Available');
+      setDoctorId('');
+      setDate('');
+      setStartTime('');
+      setEndTime('');
+      setStatus('Available');
     }
   };
 
@@ -187,14 +207,20 @@ export default function SchedulesPage() {
             <form onSubmit={handleAddSchedule} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-medium mb-1">Doctor ID</label>
-                  <input
-                    type="number"
+                  <label className="block font-medium mb-1">Doctor</label>
+                  <select
                     value={doctorId}
                     required
                     onChange={(e) => setDoctorId(e.target.value)}
                     className="w-full border border-gray-300 rounded px-3 py-2 focus:ring focus:ring-blue-200"
-                  />
+                  >
+                    <option value="">Select doctor</option>
+                    {doctors.map(d => (
+                      <option key={d.doctorid} value={d.doctorid}>
+                        {d.name} (#{d.doctorid})
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="block font-medium mb-1">Date</label>
