@@ -1,32 +1,107 @@
-import React from 'react';
-import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import React, { useState } from 'react';
+import {
+  Navigate,
+  Route,
+  BrowserRouter as Router,
+  Routes
+} from 'react-router-dom';
+
 import Sidebar from './components/Sidebar';
-// Import page components
 import AppointmentsPage from './pages/AppointmentsPage';
 import BillingPage from './pages/BillingPage';
 import DoctorsPage from './pages/DoctorsPage';
+import LoginPage from './pages/LoginPage'; // your login form
 import MedicalRecordsPage from './pages/MedicalRecordsPage';
 import PatientsPage from './pages/PatientsPage';
 import PrescriptionsPage from './pages/PrescriptionsPage';
 import SchedulesPage from './pages/SchedulesPage';
+import StaffDirectoryPage from './pages/StaffDirectoryPage';
 
 function App() {
+  // track whether we're logged in
+  const [isLoggedIn, setIsLoggedIn] = useState(
+    !!sessionStorage.getItem('staff')
+  );
+
   return (
     <Router>
       <div className="flex min-h-screen bg-gray-100">
-        {/* Sidebar navigation */}
-        <Sidebar />
-        {/* Main content area */}
-        <div className="flex-1 p-6 ml-64">
+        {isLoggedIn && (
+          /** Pass logout callback into Sidebar **/
+          <Sidebar onLogout={() => setIsLoggedIn(false)} />
+        )}
+
+        <div className={`flex-1 p-6 ${isLoggedIn ? 'ml-64' : ''}`}>
           <Routes>
-            <Route path="/" element={<Navigate to="/patients" replace />} />
-            <Route path="/patients" element={<PatientsPage />} />
-            <Route path="/doctors" element={<DoctorsPage />} />
-            <Route path="/appointments" element={<AppointmentsPage />} />
-            <Route path="/schedules" element={<SchedulesPage />} />
-            <Route path="/prescriptions" element={<PrescriptionsPage />} />
-            <Route path="/records" element={<MedicalRecordsPage />} />
-            <Route path="/billing" element={<BillingPage />} />
+            {/** Landing route: show LoginPage if not logged in **/}
+            <Route
+              path="/"
+              element={
+                isLoggedIn ? (
+                  <Navigate to="/patients" replace />
+                ) : (
+                  /** Pass login callback into LoginPage **/
+                  <LoginPage onLogin={() => setIsLoggedIn(true)} />
+                )
+              }
+            />
+
+            {/** Protected routes **/}
+            <Route
+              path="/patients"
+              element={
+                isLoggedIn ? <PatientsPage /> : <Navigate to="/" replace />
+              }
+            />
+            <Route
+              path="/doctors"
+              element={
+                isLoggedIn ? <DoctorsPage /> : <Navigate to="/" replace />
+              }
+            />
+            <Route
+              path="/appointments"
+              element={
+                isLoggedIn ? <AppointmentsPage /> : <Navigate to="/" replace />
+              }
+            />
+            <Route
+              path="/schedules"
+              element={
+                isLoggedIn ? <SchedulesPage /> : <Navigate to="/" replace />
+              }
+            />
+            <Route
+              path="/prescriptions"
+              element={
+                isLoggedIn ? <PrescriptionsPage /> : <Navigate to="/" replace />
+              }
+            />
+            <Route
+              path="/records"
+              element={
+                isLoggedIn ? <MedicalRecordsPage /> : <Navigate to="/" replace />
+              }
+            />
+            <Route
+              path="/billing"
+              element={
+                isLoggedIn ? <BillingPage /> : <Navigate to="/" replace />
+              }
+            />
+            <Route
+              path="/staff"
+              element={
+                isLoggedIn ? (
+                  <StaffDirectoryPage />
+                ) : (
+                  <Navigate to="/" replace />
+                )
+              }
+            />
+
+            {/** Catch‑all: redirect to login **/}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
       </div>

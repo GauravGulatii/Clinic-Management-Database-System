@@ -349,6 +349,12 @@ ALTER TABLE ONLY public.prescription ALTER COLUMN prescriptionid SET DEFAULT nex
 --
 
 COPY public.appointment (patientid, appointmentid, appointmentdate, appointmenttime, doctorid, staffid, scheduleid) FROM stdin;
+4	1	2025-04-19	09:00:00	1	1	6
+6	1	2025-04-19	16:00:00	1	1	6
+3	1	2025-04-19	15:00:00	1	1	6
+4	2	2025-04-19	12:00:00	1	1	6
+2	1	2025-04-19	11:00:00	5	1	\N
+9	1	2025-04-19	08:00:00	6	1	8
 \.
 
 
@@ -357,6 +363,7 @@ COPY public.appointment (patientid, appointmentid, appointmentdate, appointmentt
 --
 
 COPY public.billing (billingid, amount, paymentstatus, patientid, appointmentid, staffid) FROM stdin;
+2	65.00	Paid	4	1	\N
 \.
 
 
@@ -366,6 +373,9 @@ COPY public.billing (billingid, amount, paymentstatus, patientid, appointmentid,
 
 COPY public.clinicstaff (staffid, name, role, contactinfo) FROM stdin;
 1	Sarah Gray	Receptionist	sarah@clinic.com
+100	Alice Smith	Receptionist	\N
+101	Bob Jones	Receptionist	\N
+3	Gaurav G	\N	\N
 \.
 
 
@@ -377,6 +387,8 @@ COPY public.doctor (doctorid, name, specialization) FROM stdin;
 1	Dr. Smith	General Medicine
 2	Dr. Johnson	Cardiology
 3	Dr Ross	Brain
+5	Dr Available	Brain
+6	Dr Gaurav	Heart Surgeon
 \.
 
 
@@ -388,6 +400,11 @@ COPY public.doctorschedule (scheduleid, doctorid, scheduledate, starttime, endti
 1	2	2025-04-18	01:38:00	13:38:00	Available
 2	3	2025-04-18	00:39:00	12:40:00	Available
 3	3	2025-04-18	00:45:00	12:45:00	Unavailable
+4	3	2025-04-18	08:37:00	17:38:00	Available
+5	3	2025-04-19	08:00:00	09:00:00	Available
+6	1	2025-04-19	09:00:00	17:00:00	Available
+8	6	2025-04-19	08:00:00	17:00:00	Available
+9	6	2025-04-20	08:00:00	17:00:00	Available
 \.
 
 
@@ -396,6 +413,8 @@ COPY public.doctorschedule (scheduleid, doctorid, scheduledate, starttime, endti
 --
 
 COPY public.medicalrecord (recordid, diagnosis, treatment, patientid, appointmentid) FROM stdin;
+2	Cough and Cold	Suggested to take Tylenol, calling in 2 weeks for checkup\n	4	1
+3	BackPain	Suggested Physiotherapy	4	2
 \.
 
 
@@ -407,6 +426,8 @@ COPY public.patient (patientid, firstname, lastname, dob) FROM stdin;
 2	Alice	Smith	1995-02-14
 3	Gaurav_Test	Test	2025-04-17
 4	John	Minaz	1999-01-17
+6	Gaurav-2	Test	2021-02-18
+9	Real Gaurav	Test	2000-01-15
 \.
 
 
@@ -415,6 +436,8 @@ COPY public.patient (patientid, firstname, lastname, dob) FROM stdin;
 --
 
 COPY public.prescription (prescriptionid, medication, dosage, patientid, appointmentid) FROM stdin;
+2	Tylenol Suggested	Dosage- 2 Tablets daily for a week	4	1
+3	Cold/Cough	3 Tablets only	2	1
 \.
 
 
@@ -422,49 +445,49 @@ COPY public.prescription (prescriptionid, medication, dosage, patientid, appoint
 -- Name: billing_billingid_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.billing_billingid_seq', 1, false);
+SELECT pg_catalog.setval('public.billing_billingid_seq', 2, true);
 
 
 --
 -- Name: clinicstaff_staffid_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.clinicstaff_staffid_seq', 1, true);
+SELECT pg_catalog.setval('public.clinicstaff_staffid_seq', 6, true);
 
 
 --
 -- Name: doctor_doctorid_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.doctor_doctorid_seq', 3, true);
+SELECT pg_catalog.setval('public.doctor_doctorid_seq', 6, true);
 
 
 --
 -- Name: doctorschedule_scheduleid_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.doctorschedule_scheduleid_seq', 3, true);
+SELECT pg_catalog.setval('public.doctorschedule_scheduleid_seq', 9, true);
 
 
 --
 -- Name: medicalrecord_recordid_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.medicalrecord_recordid_seq', 1, false);
+SELECT pg_catalog.setval('public.medicalrecord_recordid_seq', 4, true);
 
 
 --
 -- Name: patient_patientid_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.patient_patientid_seq', 5, true);
+SELECT pg_catalog.setval('public.patient_patientid_seq', 9, true);
 
 
 --
 -- Name: prescription_prescriptionid_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.prescription_prescriptionid_seq', 1, false);
+SELECT pg_catalog.setval('public.prescription_prescriptionid_seq', 4, true);
 
 
 --

@@ -335,8 +335,9 @@ export default function AppointmentsPage() {
               appointments.map((app) => (
                 <tr
                   key={`${app.patientid}-${app.appointmentid}`}
-                  className={`cursor-pointer hover:bg-gray-50 ${
+                  className={`cursor-pointer hover:bg-blue-100 ${
                     selAppt?.appointmentid === app.appointmentid
+                    && selAppt?.patientid   === app.patientid
                       ? 'bg-blue-100'
                       : ''
                   }`}
