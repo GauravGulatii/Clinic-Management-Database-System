@@ -75,7 +75,7 @@ export default function LoginPage({ onLogin }) {
             value={identifier}
             onChange={(e) => setIdentifier(e.target.value)}
             className="w-full border px-3 py-2 rounded"
-            placeholder="e.g. 123 or John Doe"
+            placeholder="e.g. 100 or Alice Smith"
           />
         </div>
         <div>
