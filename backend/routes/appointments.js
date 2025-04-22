@@ -105,7 +105,7 @@ router.post('/', async (req, res) => {
         .json({ error: 'Doctor is already booked at that date & time.' });
     }
 
-    // compute next weak‑entity ID
+    // compute next weak entity ID
     const { rows } = await pool.query(`
       SELECT COALESCE(MAX(appointmentid), 0) AS max_id
       FROM appointment

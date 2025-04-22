@@ -10,7 +10,7 @@ import Sidebar from './components/Sidebar';
 import AppointmentsPage from './pages/AppointmentsPage';
 import BillingPage from './pages/BillingPage';
 import DoctorsPage from './pages/DoctorsPage';
-import LoginPage from './pages/LoginPage'; // your login form
+import LoginPage from './pages/LoginPage';
 import MedicalRecordsPage from './pages/MedicalRecordsPage';
 import PatientsPage from './pages/PatientsPage';
 import PrescriptionsPage from './pages/PrescriptionsPage';

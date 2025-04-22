@@ -51,8 +51,7 @@ export default function LoginPage({ onLogin }) {
       // Persist in sessionStorage
       sessionStorage.setItem('staff', JSON.stringify(staff));
 
-      // **THIS** is the crucial bit:
-      // Tell App that we’re now logged in so it re-renders
+      // Tell App that we are now logged in so it re-renders
       onLogin();
 
       // Now navigate to the protected area

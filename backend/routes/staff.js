@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../db');  // PostgreSQL connection pool
+const pool = require('../db');
 
 // GET /api/staff?name=<fullName> - optional query to find by name
 // GET /api/staff - get all staff if no query provided

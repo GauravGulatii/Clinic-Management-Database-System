@@ -15,7 +15,7 @@ export default function StaffDirectoryPage() {
   // For delete confirmation
   const [deleteCandidate, setDeleteCandidate] = useState(null);
 
-  // current logged‑in staff
+  // current logged in staff
   const current = JSON.parse(sessionStorage.getItem('staff') || '{}');
 
   // Fetch staff list

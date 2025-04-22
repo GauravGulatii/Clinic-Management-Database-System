@@ -27,7 +27,7 @@ export default function PrescriptionsPage() {
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // new: search + sort state
+  // search + sort state
   const [searchTerm, setSearchTerm] = useState('');
   const [sortAsc, setSortAsc] = useState(true);
 

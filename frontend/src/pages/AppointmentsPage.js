@@ -55,7 +55,7 @@ export default function AppointmentsPage() {
     fetchAll();
   }, []);
 
-  // reload time‑slots when doctor or date changes
+  // reload time slots when doctor or date changes
   useEffect(() => {
     if (!doctorId || !date) {
       setTimeSlots([]);

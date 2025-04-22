@@ -13,7 +13,7 @@ export default function SchedulesPage() {
   const [endTime, setEndTime]       = useState('');
   const [status, setStatus]         = useState('Available');
 
-  const [doctors, setDoctors]       = useState([]);       // <-- new
+  const [doctors, setDoctors]       = useState([]);
 
   // for delete confirmation
   const [showDelete, setShowDelete] = useState(false);
